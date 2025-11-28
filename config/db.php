@@ -1,9 +1,9 @@
 <?php
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "loan_app";
+$servername = "sql207.infinityfree.com";
+$username = "if0_40547889";
+$password = "8slD09ig0dGT";
+$dbname = "if0_40547889_db";
 
 // Create a connection to the database
 $conn = mysqli_connect($servername, $username, $password, $dbname);
