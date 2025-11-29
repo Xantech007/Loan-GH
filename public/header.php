@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - CedisPay Savings & Credit Co-operative</title>
 
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=edit_document" />
@@ -43,7 +43,7 @@
 
 <header>
     <div class="logo">
-        <img src="../../assets/logo.png" alt="CedisPay Logo" class="logo-img">
+        <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
     </div>
 
     <i class="fa-solid fa-bars fa-xl"></i>
@@ -61,5 +61,5 @@
         <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
     </div>
 
-    <button class="login-btn"><a href="../../member/login.php">Login</a></button>
+    <button class="login-btn"><a href="../member/login.php">Login</a></button>
 </header>
