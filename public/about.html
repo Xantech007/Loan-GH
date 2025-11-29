@@ -1,145 +1,170 @@
+<!-- Converted Ghana-styled About Page for CedisPay -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - CedisPay Savings & Credit Co-operative</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - CedisPay Ghana Loans</title>
 
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 
     <style>
         header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 20px;
-            background: #003366;
+            padding: 12px 20px;
+            background: #002b5c;
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
-        /* LOGO + IMAGE */
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-img {
-            height: 55px;
-            width: auto;
-            object-fit: contain;
-        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-img { height: 55px; object-fit: contain; }
 
         nav { display: flex; }
         nav.active { display: block; }
+
+        .about-hero {
+            background: url('../assets/ghana-bg.jpg') center/cover no-repeat;
+            padding: 90px 20px;
+            color: #fff;
+            text-align: center;
+        }
+        .about-hero h1 { font-size: 50px; font-weight: 800; }
+
+        .about-content { padding: 60px 20px; max-width: 900px; margin: auto; }
+        .about-content h2 { color: #002b5c; font-weight: 700; margin-top: 30px; }
+        .about-content p { font-size: 18px; line-height: 1.7; }
+        .about-content ul li { margin-bottom: 10px; font-size: 18px; }
+
+        .call-to-action {
+            background: #f4f9ff;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .call-to-action .btn {
+            display: inline-block;
+            background: #ffb300;
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 18px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        footer { background: #001f3d; color: #fff; padding: 40px 20px 15px; }
+        .footer-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
+        .footer-section h4 { margin-bottom: 15px; font-weight: 700; }
+        .footer-section a { color: #fff; text-decoration: none; }
+        .footer-bottom { text-align: center; margin-top: 30px; font-size: 14px; }
     </style>
 </head>
 
 <body>
 
-    <!-- HEADER FROM index.php WITH .logo -->
-    <header>
-        <div class="logo">
-            <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
+<header>
+    <div class="logo">
+        <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img" />
+    </div>
+
+    <i class="fa-solid fa-bars fa-xl"></i>
+
+    <nav>
+        <ul>
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./membership-apply.php">Apply</a></li>
+            <li><a href="./faqs.html">FAQs</a></li>
+            <li><a href="./about.html" class="active">About</a></li>
+        </ul>
+    </nav>
+
+    <div class="phone">
+        <a href="tel:+233540123456"><i class="fa-solid fa-phone"></i> Call Us: +233 540 123 456</a>
+    </div>
+
+    <button class="login-btn"><a href="../member/login.php">Login</a></button>
+</header>
+
+<!-- HERO -->
+<section class="about-hero">
+    <div class="small-container">
+        <h1>About CedisPay Ghana</h1>
+        <p>Empowering individuals, salary workers & small businesses with fast, accessible loan solutions.</p>
+    </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<section class="about-content">
+    <div>
+        <h2>Who We Are</h2>
+        <p>CedisPay Ghana is a dedicated financial service provider offering quick, reliable, and flexible loan solutions to salaried workers, business owners, and individuals across Ghana. Our mission is built on trust, transparency, and financial empowerment.</p>
+    </div>
+
+    <div>
+        <h2>Our Mission</h2>
+        <p>To provide accessible and affordable financial support, enabling Ghanaians to meet their needs — from emergency expenses to business growth — with ease and confidence.</p>
+    </div>
+
+    <div>
+        <h2>Why Choose CedisPay?</h2>
+        <ul>
+            <li>✔ Trusted financial partner for thousands of Ghanaians</li>
+            <li>✔ Fast loan approval within minutes</li>
+            <li>✔ Low and competitive interest rates</li>
+            <li>✔ Transparent processes with no hidden fees</li>
+        </ul>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="call-to-action">
+    <h2>Get Started Today</h2>
+    <p>Your financial freedom is just one step away. Apply now and experience stress-free lending.</p>
+    <a href="./membership-apply.php" class="btn">Apply Now</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-container">
+        <div class="footer-section">
+            <h4>About Us</h4>
+            <p>We provide secure, flexible and affordable loan services to help support your financial goals and improve your quality of life.</p>
         </div>
 
-        <i class="fa-solid fa-bars fa-xl"></i>
-
-        <nav>
+        <div class="footer-section">
+            <h4>Quick Links</h4>
             <ul>
                 <li><a href="./index.html">Home</a></li>
                 <li><a href="./membership-apply.php">Apply</a></li>
+                <li><a href="./about.html">About Us</a></li>
                 <li><a href="./faqs.html">FAQs</a></li>
-                <li><a href="./about.html" class="active">About</a></li>
-            </ul>
-        </nav>
-
-        <div class="phone">
-            <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
-        </div>
-
-        <button class="login-btn"><a href="../member/login.php">Login</a></button>
-    </header>
-
-    <!-- MAIN CONTENT -->
-    <section class="about-hero">
-        <div class="small-container">
-            <h1>About Us</h1>
-            <p>Committed to providing financial solutions that empower individuals and businesses.</p>
-        </div>
-    </section>
-
-    <section class="about-content">
-        <div>
-            <h2>Who We Are</h2>
-            <p>CedisPay yeMaswati Savings & Credit Co-Operative was established on <strong>21 February 2008</strong> and is registered with the <strong>Commissioner for Cooperative Development</strong> and <strong>FSRA</strong>.</p>
-        </div>
-
-        <div>
-            <h2>Our Mission</h2>
-            <p>We aim to provide accessible and affordable financial services to individuals, businesses, and communities, fostering economic growth and financial stability.</p>
-        </div>
-
-        <div>
-            <h2>Why Choose Us?</h2>
-            <ul>
-                <li>✔ Over 15 years of trusted financial service</li>
-                <li>✔ Competitive interest rates</li>
-                <li>✔ Fast and reliable loan processing</li>
-                <li>✔ A strong commitment to customer satisfaction</li>
             </ul>
         </div>
-    </section>
 
-    <section class="call-to-action">
-        <h2>Join Us Today</h2>
-        <p>Take the next step towards financial freedom. Contact us to learn more about our loan services.</p>
-        <a href="./membership-apply.php" class="btn">Apply Now</a>
-    </section>
-
-    <!-- FOOTER FROM index.php -->
-    <footer>
-        <div class="footer-container">
-            <div class="footer-section">
-                <h4>About Us</h4>
-                <p>We are a trusted savings and credit cooperative dedicated to empowering our members with financial solutions, including loans and secure savings options.</p>
-            </div>
-
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="./index.html">Home</a></li>
-                    <li><a href="./membership-apply.php">Apply</a></li>
-                    <li><a href="./about.html">About Us</a></li>
-                    <li><a href="./faqs.html">FAQs</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h4>Contact Us</h4>
-                <p><i class="fa-solid fa-location-dot"></i> Mbabane, Eswatini</p>
-                <p><i class="fa-solid fa-phone"></i> <a href="tel:+26824042876">+268 2404 2876</a></p>
-                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
-            </div>
+        <div class="footer-section">
+            <h4>Contact Us</h4>
+            <p><i class="fa-solid fa-location-dot"></i> Accra, Ghana</p>
+            <p><i class="fa-solid fa-phone"></i> <a href="tel:+233540123456">+233 540 123 456</a></p>
+            <p><i class="fa-solid fa-envelope"></i> <a href="mailto:support@cedispaygh.com">support@cedispaygh.com</a></p>
         </div>
+    </div>
 
-        <div class="footer-bottom">
-            <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
-        </div>
-    </footer>
+    <div class="footer-bottom">
+        <p>&copy; 2025 CedisPay Ghana. All Rights Reserved.</p>
+    </div>
+</footer>
 
-    <!-- MOBILE MENU -->
-    <script>
-        const menuIcon = document.querySelector('.fa-bars');
-        const navMenu = document.querySelector('nav');
-
-        menuIcon.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-        });
-    </script>
+<script>
+    const menuIcon = document.querySelector('.fa-bars');
+    const navMenu = document.querySelector('nav');
+    menuIcon.addEventListener('click', () => navMenu.classList.toggle('active'));
+</script>
 
 </body>
 </html>
