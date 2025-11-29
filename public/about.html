@@ -8,11 +8,39 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #003366;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* LOGO + IMAGE */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-img {
+            height: 55px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        nav { display: flex; }
+        nav.active { display: block; }
+    </style>
 </head>
 
 <body>
 
-    <!-- HEADER (IDENTICAL TO index.php) -->
+    <!-- HEADER FROM index.php WITH .logo -->
     <header>
         <div class="logo">
             <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
@@ -36,7 +64,7 @@
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- PAGE CONTENT REMAINS UNCHANGED -->
+    <!-- MAIN CONTENT -->
     <section class="about-hero">
         <div class="small-container">
             <h1>About Us</h1>
@@ -72,7 +100,7 @@
         <a href="./membership-apply.php" class="btn">Apply Now</a>
     </section>
 
-    <!-- FOOTER (IDENTICAL TO index.php) -->
+    <!-- FOOTER FROM index.php -->
     <footer>
         <div class="footer-container">
             <div class="footer-section">
@@ -103,7 +131,7 @@
         </div>
     </footer>
 
-    <!-- MOBILE MENU SCRIPT -->
+    <!-- MOBILE MENU -->
     <script>
         const menuIcon = document.querySelector('.fa-bars');
         const navMenu = document.querySelector('nav');
