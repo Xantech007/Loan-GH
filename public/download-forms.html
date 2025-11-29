@@ -6,11 +6,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=edit_document" />
-
-
     <title>Download Application Forms</title>
-    <style>
 
+    <style>
         .top {
             text-align: center;
             padding: 20px 0;
@@ -26,10 +24,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
-
             max-width: 1200px;
             margin: 30px auto;
-      
         }
         .form-card {
             background-color: #fff;
@@ -64,30 +60,31 @@
         .download-btn:hover {
             background-color: #2980b9;
         }
-
         .form-card img {
             width: 120px;
             display: block;
             margin: 0 auto;
         }
-
         @media screen and (max-width: 768px) {
             .forms-grid {
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                 margin: 40px;
             }
-
             .top {
                 padding: 20px 25px;
             }
         }
-
     </style>
 </head>
+
 <body>
+
+    <!-- REPLACED HEADER FROM index.php -->
     <header>
-        
-        <div class="logo">CedisPay</div>
+        <div class="logo">
+            <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
+        </div>
+
         <i class="fa-solid fa-bars fa-xl"></i>
 
         <nav>
@@ -98,127 +95,91 @@
                 <li><a href="./about.html">About</a></li>
             </ul>
         </nav>
-        <div class="phone">
-            <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
-        </div>
-        <button class="login-btn"><a href="./login.html">Login</a></button>
 
+        <div class="phone">
+            <a href="tel:+1234567890"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
+        </div>
+
+        <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
+    <!-- PAGE CONTENT -->
     <section class="top">
         <h1>Download Application Forms</h1>
         <p>Select and download the forms you need for your application process.</p>
     </section>
 
     <main class="forms-grid">
-        
+
         <section class="form-card">
             <h2>Membership Application</h2>
             <img src="../assets/pdf-icon.png" alt="">
-
             <p>If you're applying for one of our members, please download and fill out this form.</p>
-            <a href="./forms/MEMBERSHIP APPLICATION FORM.pdf" download class="download-btn" aria-label="Download Scholarship Application Form">Download Form</a>
+            <a href="./forms/MEMBERSHIP APPLICATION FORM.pdf" download class="download-btn">Download Form</a>
         </section>
 
         <section class="form-card">
             <h2>Short Term Loan Application</h2>
             <img src="../assets/pdf-icon.png" alt="">
             <p>This is the short loan application form. Please download and fill out this form.</p>
-            <a href="./forms/SOFT LOAN APPLICATION FORM.pdf" download class="download-btn" aria-label="Download General Application Form">Download Form</a>
+            <a href="./forms/SOFT LOAN APPLICATION FORM.pdf" download class="download-btn">Download Form</a>
         </section>
 
         <section class="form-card">
             <h2>Emergency Loan Application</h2>
             <img src="../assets/pdf-icon.png" alt="">
-            <p>Use this form when applying for a an emergency loan.</p>
-            <a href="./forms/EMERGENCY LOAN APPLICATION FORM.pdf" download class="download-btn" aria-label="Download Employment Application Form">Download Form</a>
+            <p>Use this form when applying for an emergency loan.</p>
+            <a href="./forms/EMERGENCY LOAN APPLICATION FORM.pdf" download class="download-btn">Download Form</a>
         </section>
 
         <section class="form-card">
             <h2>Long Term Loan Application</h2>
             <img src="../assets/pdf-icon.png" alt="">
-
-            <p>Download this form to register for long term loans</p>
-            <a href="./forms/LONG TERM APPLICATION FORM.pdf" download class="download-btn" aria-label="Download Volunteer Registration Form">Download Form</a>
+            <p>Download this form to register for long term loans.</p>
+            <a href="./forms/LONG TERM APPLICATION FORM.pdf" download class="download-btn">Download Form</a>
         </section>
 
     </main>
 
+    <!-- REPLACED FOOTER FROM index.php -->
     <footer>
         <div class="footer-container">
-            <!-- About Section -->
             <div class="footer-section">
                 <h4>About Us</h4>
                 <p>We are a trusted savings and credit cooperative dedicated to empowering our members with financial solutions, including loans and secure savings options.</p>
             </div>
-    
-            <!-- Quick Links -->
+
             <div class="footer-section">
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="./index.html">Home</a></li>
                     <li><a href="./membership-apply.php">Apply</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="faqs.html">FAQs</a></li>
+                    <li><a href="./about.html">About Us</a></li>
+                    <li><a href="./faqs.html">FAQs</a></li>
                 </ul>
             </div>
-    
-            <!-- Contact Section -->
+
             <div class="footer-section">
                 <h4>Contact Us</h4>
                 <p><i class="fa-solid fa-location-dot"></i> Mbabane, Eswatini</p>
                 <p><i class="fa-solid fa-phone"></i> <a href="tel:+1234567890">+268 2404 2876</a></p>
                 <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
             </div>
-    
-            <!-- Social Media -->
-            <!-- <div class="footer-section">
-                <h4>Follow Us</h4>
-                <div class="social-icons">
-                    <a href="#"><i class="fa-brands fa-facebook"></i></a>
-                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-                    <a href="#"><i class="fa-brands fa-linkedin"></i></a>
-                </div>
-            </div> -->
         </div>
-    
+
         <div class="footer-bottom">
             <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
         </div>
     </footer>
 
-    <!-- <script>
-        // Select all navigation links
-        const navLinks = document.querySelectorAll('nav ul li a');
+    <script>
+        const menuIcon = document.querySelector('.fa-bars');
+        const navMenu = document.querySelector('nav');
 
-        // Get the current page URL
-        const currentUrl = window.location.pathname;
-
-        // Loop through each link to check if it matches the current URL
-        navLinks.forEach(link => {
-            // Remove 'active' class from all links
-            link.classList.remove('active');
-
-            // If the link's href matches the current URL, add 'active' class
-            if (link.getAttribute('href').includes(currentUrl.split('/').pop())) {
-                link.classList.add('active');
-            }
+        menuIcon.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
         });
+    </script>
 
-    </script> -->
-
-<script>
-    // Select the menu icon
-    const menuIcon = document.querySelector('.fa-bars');
-    // Select the navigation menu
-    const navMenu = document.querySelector('nav');
-
-    // Add a click event listener to the menu icon
-    menuIcon.addEventListener('click', () => {
-        // Toggle the 'active' class on the navigation menu
-        navMenu.classList.toggle('active');
-    });
-</script>
-    
 </body>
 </html>
