@@ -6,9 +6,41 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=edit_document" />
+
     <title>Download Application Forms</title>
 
     <style>
+        /* HEADER FIX */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #003366;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .logo-img {
+            height: 55px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        nav { display: flex; }
+        nav.active { display: block; }
+
+        /* Page content styles remain unchanged */
         .top {
             text-align: center;
             padding: 20px 0;
@@ -65,6 +97,7 @@
             display: block;
             margin: 0 auto;
         }
+
         @media screen and (max-width: 768px) {
             .forms-grid {
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -79,7 +112,7 @@
 
 <body>
 
-    <!-- REPLACED HEADER FROM index.php -->
+    <!-- REPLACED HEADER (from index.php) -->
     <header>
         <div class="logo">
             <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
@@ -97,13 +130,13 @@
         </nav>
 
         <div class="phone">
-            <a href="tel:+1234567890"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
+            <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
         </div>
 
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- PAGE CONTENT -->
+    <!-- PAGE CONTENT (unchanged) -->
     <section class="top">
         <h1>Download Application Forms</h1>
         <p>Select and download the forms you need for your application process.</p>
@@ -135,15 +168,16 @@
         <section class="form-card">
             <h2>Long Term Loan Application</h2>
             <img src="../assets/pdf-icon.png" alt="">
-            <p>Download this form to register for long term loans.</p>
+            <p>Download this form to register for long term loans</p>
             <a href="./forms/LONG TERM APPLICATION FORM.pdf" download class="download-btn">Download Form</a>
         </section>
 
     </main>
 
-    <!-- REPLACED FOOTER FROM index.php -->
+    <!-- REPLACED FOOTER (from index.php) -->
     <footer>
         <div class="footer-container">
+
             <div class="footer-section">
                 <h4>About Us</h4>
                 <p>We are a trusted savings and credit cooperative dedicated to empowering our members with financial solutions, including loans and secure savings options.</p>
@@ -165,6 +199,7 @@
                 <p><i class="fa-solid fa-phone"></i> <a href="tel:+1234567890">+268 2404 2876</a></p>
                 <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
             </div>
+
         </div>
 
         <div class="footer-bottom">
@@ -172,6 +207,7 @@
         </div>
     </footer>
 
+    <!-- Mobile menu script -->
     <script>
         const menuIcon = document.querySelector('.fa-bars');
         const navMenu = document.querySelector('nav');
