@@ -210,7 +210,7 @@
           </button>
 
           <div class="sidebar-logo">
-            <a href="#">Vulindlela</a>
+            <a href="#">CedisPay</a>
           </div>
         </div>
 

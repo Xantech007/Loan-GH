@@ -235,7 +235,7 @@
     <!-- <nav id="sidebar">
         <ul>
             <li>
-                <span class="logo">Vulindlela</span>
+                <span class="logo">CedisPay</span>
                 <button onclick="toggleSidebar()" id="toggle-btn">
                   <i class="fa-solid fa-bars fa-lg"></i>
                 </button>
@@ -277,7 +277,7 @@
   
     <div class="sidebar" id="sidebar">
         <div class="logo">
-            <h2>Vulindlela</h2>
+            <h2>CedisPay</h2>
             <button class="close-btn" onclick="toggleSidebar()">&#10005;</button>
         </div>
         <ul class="menu">

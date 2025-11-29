@@ -171,7 +171,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apply - Vulindlela Savings & Credit Co-operative</title>
+    <title>Apply - CedisPay Savings & Credit Co-operative</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Bootstrap CSS -->
@@ -254,7 +254,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Header Section -->
     <header>
-        <div class="logo">Vulindlela</div>
+        <div class="logo">CedisPay</div>
         <i class="fa-solid fa-bars fa-xl"></i>
 
         <!-- Navigation Links -->
@@ -292,7 +292,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="application-form-container">
                 <h2>Apply for Membership Online</h2>
-                <p>Join Vulindlela yeMaswati Savings & Credit Co-Operative today and access a variety of financial benefits.</p>
+                <p>Join CedisPay yeMaswati Savings & Credit Co-Operative today and access a variety of financial benefits.</p>
 
                 <!-- Membership Application Form -->
                 <form action="#" method="POST" enctype="multipart/form-data">
@@ -448,7 +448,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <div class="footer-bottom">
-        <p>&copy; 2025 Vulindlela Co-op Savings & Loans. All Rights Reserved.</p>
+        <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
     </div>
 </footer>
 
