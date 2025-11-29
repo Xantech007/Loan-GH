@@ -1,65 +1,58 @@
-<?php
-session_start();
-include('inc/header.php');
-?>
+<?php include('inc/header.php'); ?>
 
-<main id="main" class="main">
-
-    <div class="pagetitle">
-        <h1>Dashboard</h1>
-        <nav>
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item active">Home</li>
-            </ol>
-        </nav>
+<section class="hero">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>CedisPay YeMaswati Savings and Credit Co-Operative</h1>
+                <p>Get the financial support you need with flexible repayment options. Apply now and receive quick approval.</p>
+                <a href="./membership-apply.php" class="btn">Apply Now</a>
+            </div>
+            <div class="hero-image">
+                <img src="../assets/Savings-cuate.png" alt="Loan Assistance">
+            </div>
+        </div>
     </div>
+</section>
 
-    <section class="section dashboard">
-        <div class="row">
+<section class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="how-it-works-container">
+        <div class="steps">
+            
+            <div class="step">
+                <div class="step-icon dimensions"><i class="fa-solid fa-1"></i></div>
+                <h3>Fill Out the Application</h3>
+                <p>Provide your details and loan requirements through our simple online form.</p>
+            </div>
 
-            <!-- Left side columns -->
-            <div class="col-lg-8">
+            <div class="step">
+                <div class="step-icon dimensions"><i class="fa-solid fa-2"></i></div>
+                <h3>Submit Required Documents</h3>
+                <p>Upload the necessary documents to verify your information.</p>
+            </div>
 
-                <div class="row">
-
-                    <!-- Example Card -->
-                    <div class="col-xxl-4 col-md-6">
-                        <div class="card info-card">
-
-                            <div class="card-body">
-                                <h5 class="card-title">Users <span>| Total</span></h5>
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-people"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6>0</h6>
-                                        <span class="text-muted small pt-2">Registered Users</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-
-            </div><!-- End Left side -->
-
-            <!-- Right side -->
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Quick Info</h5>
-                        <p>Welcome to the dashboard.</p>
-                    </div>
-                </div>
+            <div class="step step-last">
+                <div class="step-icon dimensions"><i class="fa-solid fa-3"></i></div>
+                <h3>Get Approved Quickly</h3>
+                <p>Receive quick and fast approval and access the funds that you need.</p>
             </div>
 
         </div>
-    </section>
+    </div>
+</section>
 
-</main>
+<section class="membership-info">
+    <div class="member-info-container">
+        <h1>Become a Member</h1>
+        <p class="fee">Joining Fee: <span>E100</span></p>
+        <p class="shares">Share Value: <span>E1000.00</span></p>
+        <p class="payment-terms">Payable within a period of <strong>6 months</strong>.</p>
+        <p class="membership-status">You are a full member when you've paid your shares.</p>
+        <p class="loan-info">You can only start making loans after <strong>6 months</strong>.</p>
+        <p style="margin-bottom: 20px;">*We offer our services to Government employees</p>
+        <button class="cta-button"><a href="./membership-apply.php">Join Now</a></button>
+    </div>
+</section>
 
 <?php include('inc/footer.php'); ?>
