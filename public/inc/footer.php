@@ -8,7 +8,7 @@
         <div class="footer-section">
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="index.html">Home</a></li>
+                <li><a href="index.php">Home</a></li>
                 <li><a href="./membership-apply.php">Apply</a></li>
                 <li><a href="about.html">About Us</a></li>
                 <li><a href="faqs.html">FAQs</a></li>
@@ -27,3 +27,15 @@
         <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
     </div>
 </footer>
+
+<script>
+    const menuIcon = document.querySelector('.fa-bars');
+    const navMenu = document.querySelector('nav');
+
+    menuIcon.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+    });
+</script>
+
+</body>
+</html>
