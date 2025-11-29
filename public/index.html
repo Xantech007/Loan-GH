@@ -1,41 +1,223 @@
-<?php include('header.php'); ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - CedisPay Savings & Credit Co-operative</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<!-- HERO SECTION -->
-<section class="hero">
-    <div class="hero-container">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1>CedisPay YeMaswati Savings and Credit Co-Operative</h1>
-                <p>Get the financial support you need with flexible repayment options. Apply now and receive quick approval.</p>
-                <a href="./membership-apply.php" class="btn">Apply Now</a>
-            </div>
-            <div class="hero-image">
-                <img src="../assets/Savings-cuate.png" alt="Loan Assistance">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=edit_document" />
+
+    <style>
+
+        /* ------------------------------------------------------------------
+           HEADER + LOGO FIX
+        ------------------------------------------------------------------ */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #003366;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .logo-img {
+            height: 55px;        /* Resize logo height */
+            width: auto;         /* Maintain aspect ratio */
+            object-fit: contain; /* Ensure clean scaling */
+        }
+
+        /* Mobile navigation toggle styling */
+        nav {
+            display: flex;
+        }
+
+        nav.active {
+            display: block;
+        }
+
+        /* ------------------------------------------------------------------
+           OTHER STYLE SECTIONS (Your existing CSS)
+        ------------------------------------------------------------------ */
+
+        .membership-info {
+            background-color: #003366;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .member-info-container {
+            max-width: 1200px;
+            margin: 10px auto;
+        }
+
+        .member-info-container p {
+            color: #fff;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .fee, .shares, .payment-terms, .membership-status, .loan-info {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+
+        .fee span, .shares span {
+            font-weight: bold;
+        }
+
+        .cta-button {
+            background-color: #FFC107;
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .cta-button a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .cta-button:hover {
+            background-color: #FFCA2C;
+        }
+
+        .feature-item i {
+            margin-right: 15px;
+            margin-top: 5px;
+            color: #003366;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo">
+            <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img">
+        </div>
+
+        <i class="fa-solid fa-bars fa-xl"></i>
+
+        <nav>
+            <ul>
+                <li><a href="./index.html" class="active">Home</a></li>
+                <li><a href="./membership-apply.php">Apply</a></li>
+                <li><a href="./faqs.html">FAQs</a></li>
+                <li><a href="./about.html">About</a></li>
+            </ul>
+        </nav>
+
+        <div class="phone">
+            <a href="tel:+1234567890"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
+        </div>
+
+        <button class="login-btn"><a href="../member/login.php">Login</a></button>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>CedisPay YeMaswati Savings and Credit Co-Operative</h1>
+                    <p>Get the financial support you need with flexible repayment options. Apply now and receive quick approval.</p>
+                    <a href="./membership-apply.php" class="btn">Apply Now</a>
+                </div>
+                <div class="hero-image">
+                    <img src="../assets/Savings-cuate.png" alt="Loan Assistance">
+                </div>
             </div>
         </div>
+    </section>
+
+    <!-- MEMBERSHIP INFO -->
+    <section class="membership-info">
+        <div class="member-info-container">
+            <h1>Become a Member</h1>
+            <p class="fee">Joining Fee: <span>E100</span></p>
+            <p class="shares">Share Value: <span>E1000.00</span></p>
+            <p class="payment-terms">Payable within a period of <strong>6 months</strong>.</p>
+            <p class="membership-status">You are a full member when you've paid your shares.</p>
+            <p class="loan-info">You can only start making loans after <strong>6 months</strong>.</p>
+            <p style="margin-bottom: 20px;">*We offer our services to Government employees</p>
+            <button class="cta-button"><a href="./membership-apply.php">Join Now</a></button>
+        </div>
+    </section>
+
+    <!-- LOAN SERVICES -->
+    <div class="container-loan-container">
+        <h1>Services Offered </h1>
+        <p id="payslip" style="font-style: italic;">*Payslip required when applying for loans</p>
+
+        <!-- Loan Card Grid -->
+        <!-- ... (Your entire loan cards section stays unchanged) ... -->
+
     </div>
-</section>
 
-<!-- MEMBERSHIP INFO -->
-<section class="membership-info">
-    <div class="member-info-container">
-        <h1>Become a Member</h1>
-        <p class="fee">Joining Fee: <span>E100</span></p>
-        <p class="shares">Share Value: <span>E1000.00</span></p>
-        <p class="payment-terms">Payable within a period of <strong>6 months</strong>.</p>
-        <p class="membership-status">You are a full member when you've paid your shares.</p>
-        <p class="loan-info">You can only start making loans after <strong>6 months</strong>.</p>
-        <p style="margin-bottom: 20px;">*We offer our services to Government employees</p>
-        <button class="cta-button"><a href="./membership-apply.php">Join Now</a></button>
-    </div>
-</section>
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>About Us</h4>
+                <p>We are a trusted savings and credit cooperative dedicated to empowering our members with financial solutions, including loans and secure savings options.</p>
+            </div>
 
-<!-- SERVICES / LOAN SECTION -->
-<div class="container-loan-container">
-    <h1>Services Offered</h1>
-    <p id="payslip" style="font-style: italic;">*Payslip required when applying for loans</p>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="./membership-apply.php">Apply</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="faqs.html">FAQs</a></li>
+                </ul>
+            </div>
 
-    <!-- KEEP YOUR LOAN CARDS HERE -->
-</div>
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p><i class="fa-solid fa-location-dot"></i> Mbabane, Eswatini</p>
+                <p><i class="fa-solid fa-phone"></i> <a href="tel:+1234567890">+268 2404 2876</a></p>
+                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
+            </div>
+        </div>
 
-<?php include('footer.php'); ?>
+        <div class="footer-bottom">
+            <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- MOBILE MENU SCRIPT -->
+    <script>
+        const menuIcon = document.querySelector('.fa-bars');
+        const navMenu = document.querySelector('nav');
+
+        menuIcon.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    </script>
+
+</body>
+</html>
