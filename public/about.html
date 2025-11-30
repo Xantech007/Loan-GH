@@ -33,29 +33,44 @@
         }
         nav { display: flex; }
         nav.active { display: block; }
+
+        /* Updated Hero Section - Solid colour matching header */
         .about-hero {
-            background: linear-gradient(rgba(0,51,102,0.85), rgba(0,51,102,0.85)), url('../assets/about-bg.jpg');
-            background-size: cover;
-            background-position: center;
+            background: #003366;
             color: white;
-            padding: 100px 20px;
+            padding: 120px 20px 100px;
             text-align: center;
         }
+        .about-hero h1 {
+            font-size: 2.8rem;
+            margin: 0 0 20px 0;
+            line-height: 1.2;
+        }
+        .about-hero p {
+            font-size: 1.3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
         .about-content {
             max-width: 1200px;
-            margin: 40px auto;
+            margin: 50px auto;
             padding: 0 20px;
             line-height: 1.8;
         }
         .about-content h2 {
             color: #003366;
-            margin-top: 40px;
+            margin-top: 50px;
+            font-size: 2.2rem;
+            text-align: center;
         }
         .mission-vision {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            margin: 50px 0;
+            margin: 60px 0;
         }
         .card {
             background: #f9f9f9;
@@ -73,14 +88,19 @@
             background-color: #FFC107;
             color: #333;
             border: none;
-            padding: 12px 24px;
-            font-size: 1.1rem;
+            padding: 14px 30px;
+            font-size: 1.2rem;
             cursor: pointer;
             border-radius: 5px;
             transition: background-color 0.3s;
         }
         .cta-button a { text-decoration: none; color: #333; }
         .cta-button:hover { background-color: #FFCA2C; }
+
+        @media (max-width: 768px) {
+            .about-hero h1 { font-size: 2.3rem; }
+            .about-hero p { font-size: 1.1rem; }
+        }
     </style>
 </head>
 <body>
@@ -105,12 +125,10 @@
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- About Hero Section -->
+    <!-- Fixed Hero Section -->
     <section class="about-hero">
-        <div class="hero-container">
-            <h1>About CedisPay</h1>
-            <p>Your trusted financial partner for fast, transparent, and affordable loans in Ghana.</p>
-        </div>
+        <h1>About CedisPay</h1>
+        <p>Your trusted financial partner for fast, transparent, and affordable loans in Ghana.</p>
     </section>
 
     <!-- Main About Content -->
@@ -139,21 +157,21 @@
         </div>
 
         <h2>Why Ghanaians Trust CedisPay</h2>
-        <ul style="line-height: 2; font-size: 1.1em;">
-            <li>✓ Fully registered and regulated in Ghana</li>
-            <li>✓ No hidden fees or charges</li>
-            <li>✓ Fast approval within 24–48 hours</li>
-            <li>✓ Flexible repayment up to 24 months</li>
-            <li>✓ 100% online application process</li>
-            <li>✓ Secure and confidential handling of your data</li>
+        <ul style="line-height: 2.2; font-size: 1.1em; max-width: 800px; margin: 30px auto;">
+            <li>Fully registered and regulated in Ghana</li>
+            <li>No hidden fees or charges</li>
+            <li>Fast approval within 24–48 hours</li>
+            <li>Flexible repayment up to 24 months</li>
+            <li>100% online application process</li>
+            <li>Secure and confidential handling of your data</li>
         </ul>
 
-        <div style="text-align: center; margin: 50px 0;">
+        <div style="text-align: center; margin: 60px 0;">
             <button class="cta-button"><a href="./loan-apply.php">Apply for a Loan Today</a></button>
         </div>
     </section>
 
-    <!-- Footer - Same as index.html -->
+    <!-- Footer (unchanged) -->
     <footer>
         <div class="footer-container">
             <div class="footer-section">
