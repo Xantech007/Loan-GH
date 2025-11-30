@@ -29,7 +29,7 @@
         nav { display: flex; }
         nav.active { display: block; }
 
-        /* FAQs Hero - same color as header */
+        /* Hero Section - Same colour as header, white text */
         .faqs-hero {
             background: #003366;
             color: white;
@@ -46,65 +46,75 @@
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.6;
+            color: white;
             opacity: 0.95;
         }
 
         /* FAQs Content */
-        .faqs-content {
+        .faqs-container {
             max-width: 1000px;
             margin: 60px auto;
             padding: 0 20px;
         }
         .faq-item {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             border-bottom: 1px solid #ddd;
-            padding-bottom: 20px;
         }
-        .faq-item h3 {
-            color: #003366;
-            font-size: 1.4rem;
-            margin: 0 0 15px 0;
+        .faq-question {
+            width: 100%;
+            text-align: left;
+            padding: 18px 20px;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.15rem;
+            font-weight: 600;
             cursor: pointer;
-            position: relative;
-            padding-right: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #003366;
+            transition: background 0.3s;
         }
-        .faq-item h3::after {
-            content: '\f078'; /* chevron down */
+        .faq-question:hover { background: #e9ecef; }
+        .faq-question::after {
+            content: '\f107'; /* chevron down */
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            transition: transform 0.3s;
+            font-size: 1.4rem;
         }
-        .faq-item h3.active::after {
-            content: '\f077'; /* chevron up */
-            transform: translateY(-50%) rotate(180deg);
+        .faq-question.active::after {
+            content: '\f106'; /* chevron up */
         }
-        .faq-item p {
-            display: none;
-            line-height: 1.8;
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            background: #fff;
+        }
+        .faq-answer p {
+            padding: 20px 0;
+            line-height: 1.7;
             color: #444;
-            font-size: 1.1rem;
         }
-        .faq-item p.active { display: block; }
+        .faq-answer.active {
+            max-height: 500px;
+            padding: 0 20px 20px;
+        }
 
-        .cta-section {
-            text-align: center;
-            margin: 80px 0;
-        }
         .cta-button {
             background-color: #FFC107;
             color: #333;
             border: none;
-            padding: 14px 32px;
+            padding: 14px 30px;
             font-size: 1.2rem;
             cursor: pointer;
             border-radius: 5px;
             transition: background-color 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            margin-top: 30px;
         }
-        .cta-button a { text-decoration: none; color: #333; }
         .cta-button:hover { background-color: #FFCA2C; }
     </style>
 </head>
@@ -130,72 +140,73 @@
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- FAQs Hero -->
+    <!-- Hero Section -->
     <section class="faqs-hero">
         <h1>Frequently Asked Questions</h1>
         <p>Find quick answers to the most common questions about CedisPay loans.</p>
     </section>
 
-    <!-- FAQs List -->
-    <section class="faqs-content">
+    <!-- FAQs Accordion -->
+    <div class="faqs-container">
         <div class="faq-item">
-            <h3>Who is eligible to apply for a CedisPay loan?</h3>
-            <p>Anyone who is 18 years or older, has a valid Ghana Card, a steady income (payslip or proof of income), and an active mobile money account or bank account can apply.</p>
+            <button class="faq-question">Who is eligible to apply for a CedisPay loan?<span></span></button>
+            <div class="faq-answer">
+                <p>Any Ghanaian aged 21–60 with a valid Ghana Card, regular income (salary or business), and an active mobile money account or bank account can apply.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>How much can I borrow?</h3>
-            <p>You can borrow from GHS 500 up to GHS 50,000 depending on your income, credit history, and repayment capacity.</p>
+            <button class="faq-question">What documents do I need to apply?</button>
+            <div class="faq-answer">
+                <p>• Valid Ghana Card<br>• Recent payslip or proof of income<br>• Bank statement or MoMo statement (last 3–6 months)<br>• One passport-sized photo</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>What documents do I need to apply?</h3>
-            <p>• Valid Ghana Card<br>• Recent payslip or proof of income<br>• Bank statement or Mobile Money statement (last 3–6 months)<br>• Recent passport-sized photo</p>
+            <button class="faq-question">How long does approval take?</button>
+            <div class="faq-answer">
+                <p>Once all required documents are submitted, approval usually takes 24–48 hours. You will receive an SMS and email notification.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>How long does approval take?</h3>
-            <p>Once all required documents are submitted, approval usually takes 24–48 hours.</p>
+            <button class="faq-question">How is the loan disbursed?</button>
+            <div class="faq-answer">
+                <p>Approved loans are sent directly to your Mobile Money wallet or bank account within minutes of final approval.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>How do I receive the money?</h3>
-            <p>Approved loans are disbursed directly to your Mobile Money wallet (MTN, Vodafone, AirtelTigo) or bank account within minutes.</p>
+            <button class="faq-question">What are the interest rates?</button>
+            <div class="faq-answer">
+                <p>Interest rates are competitive and range from 8%–15% per month depending on loan amount and tenure. Full repayment schedule is shown before you accept the loan.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>What are the repayment terms?</h3>
-            <p>You can choose flexible repayment periods from 3 to 24 months. You’ll pay fixed monthly installments via mobile money or direct debit.</p>
+            <button class="faq-question">Can I repay early?</button>
+            <div class="faq-answer">
+                <p>Yes! There are no penalties for early repayment. You can pay off your loan anytime and save on interest.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>Are there any hidden charges?</h3>
-            <p>No. We are 100% transparent. All fees and interest rates are clearly shown before you accept the loan.</p>
+            <button class="faq-question">What happens if I miss a repayment?</button>
+            <div class="faq-answer">
+                <p>A small penalty fee will be applied, and it may affect your credit score with us. We encourage you to contact us immediately if you foresee any difficulty so we can restructure your repayment plan.</p>
+            </div>
         </div>
 
         <div class="faq-item">
-            <h3>Can I repay early?</h3>
-            <p>Yes! You can repay your loan early at any time with no penalty or extra charges.</p>
+            <button class="faq-question">Is my information safe?</button>
+            <div class="faq-answer">
+                <p>Yes. We use bank-level encryption and never share your data with third parties without your consent. We are fully compliant with Ghana’s Data Protection Act.</p>
+            </div>
         </div>
 
-        <div class="faq-item">
-            <h3>What happens if I miss a payment?</h3>
-            <p>We understand things happen. Contact us immediately if you foresee any difficulty. Late payments may attract a small penalty and affect future loan eligibility.</p>
+        <div style="text-align: center;">
+            <a href="./loan-apply.php" class="cta-button">Apply for a Loan Now</a>
         </div>
-
-        <div class="faq-item">
-            <h3>How do I contact customer support?</h3>
-            <p>Call us on <strong>+233 50 123 4567</strong> or email <strong>support@cedispay.com</strong>. We’re available Monday–Saturday, 8 AM–6 PM.</p>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <div class="cta-section">
-        <p style="font-size: 1.3rem; margin-bottom: 20px;">Still have questions?</p>
-        <button class="cta-button"><a href="./loan-apply.php">Apply Now</a></button>
-        <button class="cta-button" style="margin-left: 15px; background:#003366; color:white;">
-            <a href="tel:+233501234567" style="color:white;">Call Us: +233 50 123 4567</a>
-        </button>
     </div>
 
     <!-- Footer (same as other pages) -->
@@ -226,31 +237,30 @@
         </div>
     </footer>
 
-    <!-- Simple Accordion Script -->
     <script>
-        const faqTitles = document.querySelectorAll('.faq-item h3');
-        faqTitles.forEach(title => {
-            title.addEventListener('click', () => {
-                const answer = title.nextElementSibling;
-                const isActive = answer.classList.contains('active');
-
-                // Close all others
-                document.querySelectorAll('.faq-item p').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.faq-item h3').forEach(h => h.classList.remove('active'));
-
-                // Open clicked one
-                if (!isActive) {
-                    answer.classList.add('active');
-                    title.classList.add('active');
-                }
-            });
-        });
-
-        // Mobile menu toggle
+        // Mobile menu
         const menuIcon = document.querySelector('.fa-bars');
         const navMenu = document.querySelector('nav');
         menuIcon.addEventListener('click', () => {
             navMenu.classList.toggle('active');
+        });
+
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const answer = button.nextElementSibling;
+                const isActive = button.classList.contains('active');
+
+                // Close all others
+                document.querySelectorAll('.faq-question').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+
+                // Open clicked one
+                if (!isActive) {
+                    button.classList.add('active');
+                    answer.classList.add('active');
+                }
+            });
         });
     </script>
 </body>
