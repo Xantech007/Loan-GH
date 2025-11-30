@@ -4,92 +4,234 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>About Us - CedisPay</title>
+
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
     <style>
+        /* =======================
+           HEADER STYLING
+        ======================== */
         header {
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            padding:10px 20px;
-            background:#003366;
-            position:sticky;
-            top:0;
-            z-index:100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #003366;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+
         .logo {
-            display:flex;
-            align-items:center;
-            gap:10px;
-            font-size:22px;
-            font-weight:bold;
-            color:#fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        nav { display:flex; }
-        nav.active { display:block; }
 
+        .logo-img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .logo span {
+            color: #fff;
+            font-size: 22px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        nav ul {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        nav ul li a.active {
+            border-bottom: 2px solid #FFC107;
+        }
+
+        .phone a {
+            color: #fff;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .login-btn {
+            background: #FFC107;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+        }
+
+        .login-btn a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .menu-toggle {
+            display: none;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* =======================
+           ABOUT HERO
+        ======================== */
         .about-hero {
-            background:#003366;
-            padding:60px 20px;
-            text-align:center;
-            color:white;
-        }
-        .about-hero h1 {
-            font-size:2.8em;
-            margin-bottom:10px;
-        }
-        .about-content {
-            max-width:1100px;
-            margin:40px auto;
-            padding:20px;
-            line-height:1.7em;
-        }
-        .about-content h2 {
-            color:#003366;
-            font-size:1.9em;
-            margin-top:30px;
-        }
-        .about-content ul li {
-            margin:8px 0;
-            font-size:1.1em;
+            background: #003366;
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
         }
 
+        .about-hero h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+        }
+
+        /* =======================
+           ABOUT CONTENT
+        ======================== */
+        .about-content {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.7em;
+        }
+
+        .about-content h2 {
+            color: #003366;
+            font-size: 1.9em;
+            margin-top: 30px;
+        }
+
+        .about-content ul li {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+
+        /* =======================
+           CTA SECTION
+        ======================== */
         .call-to-action {
-            background:#f2f2f2;
-            padding:50px 20px;
-            text-align:center;
+            background: #f2f2f2;
+            padding: 50px 20px;
+            text-align: center;
         }
+
         .call-to-action h2 {
-            font-size:2.3em;
-            margin-bottom:15px;
-            color:#003366;
+            font-size: 2.3em;
+            margin-bottom: 15px;
+            color: #003366;
         }
+
         .call-to-action p {
-            font-size:1.2em;
-            margin-bottom:20px;
+            font-size: 1.2em;
+            margin-bottom: 20px;
         }
+
         .btn {
-            background:#FFC107;
-            color:#333;
-            padding:12px 24px;
-            border-radius:5px;
-            text-decoration:none;
-            font-size:1.1rem;
-            transition:background-color 0.3s;
+            background: #FFC107;
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: background-color 0.3s;
         }
-        .btn:hover { background:#FFCA2C; }
+
+        .btn:hover {
+            background: #FFCA2C;
+        }
+
+        /* =======================
+           FOOTER
+        ======================== */
+        footer {
+            background: #003366;
+            color: #fff;
+            padding: 40px 20px 10px;
+            margin-top: 40px;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 12px;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 8px;
+            list-style: none;
+        }
+
+        .footer-section ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* =======================
+           RESPONSIVE BEHAVIOR
+        ======================== */
+        @media (max-width: 920px) {
+            nav, .phone, .login-btn {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            nav.active {
+                display: block;
+                position: absolute;
+                top: 70px;
+                right: 0;
+                width: 100%;
+                background: #003366;
+                padding: 20px 0;
+            }
+
+            nav.active ul {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- =======================
+         HEADER
+    ======================== -->
     <header>
         <div class="logo">
-            <img src="../assets/logo.png" class="logo-img" alt="CedisPay Logo" />
-            CedisPay
+            <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img" />
+            <span>CedisPay</span>
         </div>
-        <i class="fa-solid fa-bars fa-xl"></i>
+
+        <i class="fa-solid fa-bars fa-xl menu-toggle"></i>
 
         <nav>
             <ul>
@@ -101,27 +243,30 @@
         </nav>
 
         <div class="phone">
-            <a href="tel:+26824042876">
-                <i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876
-            </a>
+            <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> +268 2404 2876</a>
         </div>
 
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- HERO SECTION -->
+    <!-- =======================
+         HERO SECTION
+    ======================== -->
     <section class="about-hero">
         <h1>About CedisPay</h1>
         <p>Empowering individuals and communities with accessible financial solutions.</p>
     </section>
 
-    <!-- CONTENT -->
+    <!-- =======================
+         MAIN CONTENT
+    ======================== -->
     <section class="about-content">
         <h2>Who We Are</h2>
         <p>
             CedisPay yeMaswati Savings & Credit Co-Operative was established on 
             <strong>21 February 2008</strong> and is fully registered with the 
-            <strong>Commissioner for Cooperative Development</strong> and the <strong>FSRA</strong>.
+            <strong>Commissioner for Cooperative Development</strong> and the 
+            <strong>FSRA</strong>.
         </p>
 
         <h2>Our Mission</h2>
@@ -139,36 +284,43 @@
         </ul>
     </section>
 
-    <!-- CTA -->
+    <!-- =======================
+         CTA SECTION
+    ======================== -->
     <section class="call-to-action">
         <h2>Join Us Today</h2>
         <p>Take the next step toward financial peace of mind. Start your membership today.</p>
         <a href="./membership-apply.php" class="btn">Apply Now</a>
     </section>
 
-    <!-- FOOTER -->
+    <!-- =======================
+         FOOTER
+    ======================== -->
     <footer>
         <div class="footer-container">
             <div class="footer-section">
                 <h4>About Us</h4>
-                <p>We empower our members with affordable loans, secure savings, and transparent financial services.</p>
+                <p>
+                    We empower our members with affordable loans, secure savings, 
+                    and transparent financial services.
+                </p>
             </div>
 
             <div class="footer-section">
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="index.html">Home</a></li>
+                    <li><a href="./index.html">Home</a></li>
                     <li><a href="./membership-apply.php">Apply</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="faqs.html">FAQs</a></li>
+                    <li><a href="./about.html">About Us</a></li>
+                    <li><a href="./faqs.html">FAQs</a></li>
                 </ul>
             </div>
 
             <div class="footer-section">
                 <h4>Contact Us</h4>
                 <p><i class="fa-solid fa-location-dot"></i> Mbabane, Eswatini</p>
-                <p><i class="fa-solid fa-phone"></i> <a href="tel:+26824042876">+268 2404 2876</a></p>
-                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
+                <p><i class="fa-solid fa-phone"></i> +268 2404 2876</p>
+                <p><i class="fa-solid fa-envelope"></i> info@coopfinance.com</p>
             </div>
         </div>
 
@@ -177,12 +329,17 @@
         </div>
     </footer>
 
+    <!-- =======================
+         MOBILE MENU SCRIPT
+    ======================== -->
     <script>
-        const menuIcon = document.querySelector('.fa-bars');
+        const menuIcon = document.querySelector('.menu-toggle');
         const navMenu = document.querySelector('nav');
+
         menuIcon.addEventListener('click', () => {
             navMenu.classList.toggle('active');
         });
     </script>
+
 </body>
 </html>
