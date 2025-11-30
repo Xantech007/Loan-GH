@@ -1,279 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAQs - CedisPay Savings & Credit Co-operative</title>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQs - CedisPay | Frequently Asked Questions</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
     <style>
-        /* HEADER FIXES (same as About page) */
         header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 25px;
+            padding: 10px 20px;
             background: #003366;
-            color: white;
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
         }
-
         .logo {
-            font-size: 22px;
-            font-weight: bold;
             display: flex;
             align-items: center;
             gap: 10px;
-            color: white;
-        }
-
-        .logo-img {
-            height: 55px;
-            width: auto;
-            object-fit: contain;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 25px;
-            margin: 0;
-        }
-
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        nav ul li a:hover,
-        nav ul li a.active {
-            color: #00ccff;
-        }
-
-        .phone a {
-            color: white;
-            font-weight: 500;
-            text-decoration: none;
-        }
-
-        .login-btn {
-            background: #00aaff;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 6px;
+            font-size: 22px;
             font-weight: bold;
+            color: #fff;
+        }
+        .logo-img { height: 55px; width: auto; object-fit: contain; }
+        nav { display: flex; }
+        nav.active { display: block; }
+
+        /* FAQs Hero - same color as header */
+        .faqs-hero {
+            background: #003366;
+            color: white;
+            padding: 120px 20px 100px;
+            text-align: center;
+        }
+        .faqs-hero h1 {
+            font-size: 3rem;
+            margin: 0 0 20px 0;
+            color: white;
+        }
+        .faqs-hero p {
+            font-size: 1.4rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            opacity: 0.95;
         }
 
-        .login-btn a {
-            color: white;
-            text-decoration: none;
+        /* FAQs Content */
+        .faqs-content {
+            max-width: 1000px;
+            margin: 60px auto;
+            padding: 0 20px;
         }
-
-        .fa-bars {
-            display: none;
-            color: white;
+        .faq-item {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+        .faq-item h3 {
+            color: #003366;
+            font-size: 1.4rem;
+            margin: 0 0 15px 0;
             cursor: pointer;
+            position: relative;
+            padding-right: 30px;
         }
-
-        /* Mobile */
-        @media (max-width: 900px) {
-            nav {
-                position: absolute;
-                top: 70px;
-                right: -100%;
-                background: #003366;
-                width: 100%;
-                padding: 20px 0;
-                transition: 0.3s;
-            }
-
-            nav.active {
-                right: 0;
-            }
-
-            nav ul {
-                flex-direction: column;
-                text-align: center;
-                gap: 20px;
-            }
-
-            .fa-bars {
-                display: block;
-            }
-
-            .phone,
-            .login-btn {
-                display: none;
-            }
+        .faq-item h3::after {
+            content: '\f078'; /* chevron down */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.3s;
         }
+        .faq-item h3.active::after {
+            content: '\f077'; /* chevron up */
+            transform: translateY(-50%) rotate(180deg);
+        }
+        .faq-item p {
+            display: none;
+            line-height: 1.8;
+            color: #444;
+            font-size: 1.1rem;
+        }
+        .faq-item p.active { display: block; }
+
+        .cta-section {
+            text-align: center;
+            margin: 80px 0;
+        }
+        .cta-button {
+            background-color: #FFC107;
+            color: #333;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .cta-button a { text-decoration: none; color: #333; }
+        .cta-button:hover { background-color: #FFCA2C; }
     </style>
 </head>
-
 <body>
 
-<header>
-    <div class="logo">CedisPay</div>
-    <i class="fa-solid fa-bars fa-xl"></i>
-
-    <nav>
-        <ul>
-            <li><a href="./index.html">Home</a></li>
-            <li><a href="./membership-apply.php">Apply</a></li>
-            <li><a href="./faqs.html">FAQs</a></li>
-            <li><a href="./about.html">About</a></li>
-        </ul>
-    </nav>
-
-    <div class="phone">
-        <a href="tel:+26824042876"><i class="fa-solid fa-phone"></i> Call Us Now: +268 2404 2876</a>
-    </div>
-
-    <button class="login-btn"><a href="./login.html">Login</a></button>
-</header>
-
-<section id="features">
-    <div class="small-container">
-        <h1>Frequently Asked Questions</h1>
-        <p>Have a different question? Reach out to our support team and we’ll get back to you as soon as possible.</p>
-    </div>
-
-    <div class="faq-container">
-        <div class="accordion" id="accordionExample">
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                        <strong>Which Documents Do I Need to Apply?</strong>
-                    </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show">
-                    <div class="accordion-body">
-                        <ul>
-                            <li>Certified copy of ID</li>
-                            <li>Most recent Payslip</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Repeat structure for the rest -->
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                        <strong>What is the minimum and maximum loan amount?</strong>
-                    </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        We offer loans starting from E500 up to E50,000.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                        <strong>How long does loan approval take?</strong>
-                    </button>
-                </h2>
-                <div id="collapseThree" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        Most loans are approved within 24 hours depending on verification.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                        <strong>Are there any hidden fees?</strong>
-                    </button>
-                </h2>
-                <div id="collapseFour" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        No. All fees are clearly disclosed upfront.
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
-                        <strong>Who can apply for a loan?</strong>
-                    </button>
-                </h2>
-                <div id="collapseFive" class="accordion-collapse collapse">
-                    <div class="accordion-body">
-                        Any registered cooperative member who meets eligibility requirements.
-                    </div>
-                </div>
-            </div>
-
+    <header>
+        <div class="logo">
+            <img src="../assets/logo.png" alt="CedisPay Logo" class="logo-img" />
+            CedisPay
         </div>
-    </div>
-</section>
-
-<footer>
-    <div class="footer-container">
-        <div class="footer-section">
-            <h4>About Us</h4>
-            <p>We empower members through savings and convenient loan services.</p>
-        </div>
-
-        <div class="footer-section">
-            <h4>Quick Links</h4>
+        <i class="fa-solid fa-bars fa-xl"></i>
+        <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="./membership-apply.php">Apply</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="faqs.html">FAQs</a></li>
+                <li><a href="./index.html">Home</a></li>
+                <li><a href="./loan-apply.php">Apply</a></li>
+                <li><a href="./faqs.html" class="active">FAQs</a></li>
+                <li><a href="./about.html">About</a></li>
             </ul>
+        </nav>
+        <div class="phone">
+            <a href="tel:+233501234567"><i class="fa-solid fa-phone"></i> Call Us Now: +233 50 123 4567</a>
+        </div>
+        <button class="login-btn"><a href="../member/login.php">Login</a></button>
+    </header>
+
+    <!-- FAQs Hero -->
+    <section class="faqs-hero">
+        <h1>Frequently Asked Questions</h1>
+        <p>Find quick answers to the most common questions about CedisPay loans.</p>
+    </section>
+
+    <!-- FAQs List -->
+    <section class="faqs-content">
+        <div class="faq-item">
+            <h3>Who is eligible to apply for a CedisPay loan?</h3>
+            <p>Anyone who is 18 years or older, has a valid Ghana Card, a steady income (payslip or proof of income), and an active mobile money account or bank account can apply.</p>
         </div>
 
-        <div class="footer-section">
-            <h4>Contact Us</h4>
-            <p><i class="fa-solid fa-location-dot"></i> Mbabane, Eswatini</p>
-            <p><i class="fa-solid fa-phone"></i> <a href="tel:+26824042876">+268 2404 2876</a></p>
-            <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@coopfinance.com">info@coopfinance.com</a></p>
+        <div class="faq-item">
+            <h3>How much can I borrow?</h3>
+            <p>You can borrow from GHS 500 up to GHS 50,000 depending on your income, credit history, and repayment capacity.</p>
         </div>
+
+        <div class="faq-item">
+            <h3>What documents do I need to apply?</h3>
+            <p>• Valid Ghana Card<br>• Recent payslip or proof of income<br>• Bank statement or Mobile Money statement (last 3–6 months)<br>• Recent passport-sized photo</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How long does approval take?</h3>
+            <p>Once all required documents are submitted, approval usually takes 24–48 hours.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How do I receive the money?</h3>
+            <p>Approved loans are disbursed directly to your Mobile Money wallet (MTN, Vodafone, AirtelTigo) or bank account within minutes.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>What are the repayment terms?</h3>
+            <p>You can choose flexible repayment periods from 3 to 24 months. You’ll pay fixed monthly installments via mobile money or direct debit.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Are there any hidden charges?</h3>
+            <p>No. We are 100% transparent. All fees and interest rates are clearly shown before you accept the loan.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>Can I repay early?</h3>
+            <p>Yes! You can repay your loan early at any time with no penalty or extra charges.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>What happens if I miss a payment?</h3>
+            <p>We understand things happen. Contact us immediately if you foresee any difficulty. Late payments may attract a small penalty and affect future loan eligibility.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>How do I contact customer support?</h3>
+            <p>Call us on <strong>+233 50 123 4567</strong> or email <strong>support@cedispay.com</strong>. We’re available Monday–Saturday, 8 AM–6 PM.</p>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <p style="font-size: 1.3rem; margin-bottom: 20px;">Still have questions?</p>
+        <button class="cta-button"><a href="./loan-apply.php">Apply Now</a></button>
+        <button class="cta-button" style="margin-left: 15px; background:#003366; color:white;">
+            <a href="tel:+233501234567" style="color:white;">Call Us: +233 50 123 4567</a>
+        </button>
     </div>
 
-    <div class="footer-bottom">
-        <p>&copy; 2025 CedisPay Co-op Savings & Loans. All Rights Reserved.</p>
-    </div>
-</footer>
+    <!-- Footer (same as other pages) -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>About Us</h4>
+                <p>CedisPay provides fast, transparent, and reliable loans to Ghanaians. We help individuals meet their financial goals with flexible repayment options.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="./loan-apply.php">Apply</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="faqs.html">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p><i class="fa-solid fa-location-dot"></i> Accra, Ghana</p>
+                <p><i class="fa-solid fa-phone"></i> <a href="tel:+233501234567">+233 50 123 4567</a></p>
+                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:info@cedispay.com">info@cedispay.com</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 CedisPay Loans. All Rights Reserved.</p>
+        </div>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Simple Accordion Script -->
+    <script>
+        const faqTitles = document.querySelectorAll('.faq-item h3');
+        faqTitles.forEach(title => {
+            title.addEventListener('click', () => {
+                const answer = title.nextElementSibling;
+                const isActive = answer.classList.contains('active');
 
-<script>
-    // Highlight Active Nav Link
-    const navLinks = document.querySelectorAll('nav ul li a');
-    const currentUrl = window.location.pathname;
+                // Close all others
+                document.querySelectorAll('.faq-item p').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.faq-item h3').forEach(h => h.classList.remove('active'));
 
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href').includes(currentUrl.split('/').pop())) {
-            link.classList.add('active');
-        }
-    });
+                // Open clicked one
+                if (!isActive) {
+                    answer.classList.add('active');
+                    title.classList.add('active');
+                }
+            });
+        });
 
-    // Mobile Menu Toggle
-    const menuIcon = document.querySelector('.fa-bars');
-    const navMenu = document.querySelector('nav');
-
-    menuIcon.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
-    });
-</script>
-
+        // Mobile menu toggle
+        const menuIcon = document.querySelector('.fa-bars');
+        const navMenu = document.querySelector('nav');
+        menuIcon.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>
