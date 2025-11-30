@@ -34,23 +34,24 @@
         nav { display: flex; }
         nav.active { display: block; }
 
-        /* Updated Hero Section - Solid colour matching header */
+        /* Updated Hero Section - Solid color matching header */
         .about-hero {
-            background: #003366;
+            background: #003366;                     /* Same as header */
             color: white;
             padding: 120px 20px 100px;
             text-align: center;
         }
         .about-hero h1 {
-            font-size: 2.8rem;
+            font-size: 3rem;
             margin: 0 0 20px 0;
-            line-height: 1.2;
+            color: white;
         }
         .about-hero p {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             max-width: 800px;
             margin: 0 auto;
             line-height: 1.6;
+            color: white;
             opacity: 0.95;
         }
 
@@ -62,9 +63,8 @@
         }
         .about-content h2 {
             color: #003366;
-            margin-top: 50px;
+            margin-top: 40px;
             font-size: 2.2rem;
-            text-align: center;
         }
         .mission-vision {
             display: grid;
@@ -73,7 +73,7 @@
             margin: 60px 0;
         }
         .card {
-            background: #fff;
+            background: #f9f9f9;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -96,11 +96,6 @@
         }
         .cta-button a { text-decoration: none; color: #333; }
         .cta-button:hover { background-color: #FFCA2C; }
-
-        @media (max-width: 768px) {
-            .about-hero h1 { font-size: 2.3rem; }
-            .about-hero p { font-size: 1.1rem; }
-        }
     </style>
 </head>
 <body>
@@ -125,7 +120,7 @@
         <button class="login-btn"><a href="../member/login.php">Login</a></button>
     </header>
 
-    <!-- Fixed Hero Section -->
+    <!-- Updated Hero Section -->
     <section class="about-hero">
         <h1>About CedisPay</h1>
         <p>Your trusted financial partner for fast, transparent, and affordable loans in Ghana.</p>
@@ -157,13 +152,13 @@
         </div>
 
         <h2>Why Ghanaians Trust CedisPay</h2>
-        <ul style="line-height: 2.2; font-size: 1.1em; max-width: 800px; margin: 30px auto;">
-            <li>Fully registered and regulated in Ghana</li>
-            <li>No hidden fees or charges</li>
-            <li>Fast approval within 24–48 hours</li>
-            <li>Flexible repayment up to 24 months</li>
-            <li>100% online application process</li>
-            <li>Secure and confidential handling of your data</li>
+        <ul style="line-height: 2.2; font-size: 1.1em;">
+            <li>✓ Fully registered and regulated in Ghana</li>
+            <li>✓ No hidden fees or charges</li>
+            <li>✓ Fast approval within 24–48 hours</li>
+            <li>✓ Flexible repayment up to 24 months</li>
+            <li>✓ 100% online application process</li>
+            <li>✓ Secure and confidential handling of your data</li>
         </ul>
 
         <div style="text-align: center; margin: 60px 0;">
@@ -171,7 +166,7 @@
         </div>
     </section>
 
-    <!-- Footer (unchanged) -->
+    <!-- Footer -->
     <footer>
         <div class="footer-container">
             <div class="footer-section">
