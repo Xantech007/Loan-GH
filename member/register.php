@@ -1,10 +1,7 @@
 <?php
-// register.php - CedisPay Member Registration (fixed – no more 500 error)
+// register.php - Final working version
 session_start();
 require '../config/db.php';
-
-// Force mysqli to throw real exceptions so we can see the exact error
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $success = $error = "";
 
@@ -13,7 +10,6 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // CSRF check
     if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
         $error = "Invalid request.";
     } else {
@@ -32,33 +28,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($password) < 8) {
             $error = "Password must be at least 8 characters.";
         } else {
-            try {
-                // Check duplicate email or phone
-                $check = $conn->prepare("SELECT member_id FROM members WHERE email = ? OR phone = ?");
-                $check->bind_param("ss", $email, $phone);
-                $check->execute();
-                if ($check->get_result()->num_rows > 0) {
-                    $error = "Email or phone already registered.";
-                } else {
-                    // Insert member
-                    $stmt = $conn->prepare("INSERT INTO members (full_name, email, phone, date_registered) VALUES (?, ?, ?, NOW())");
-                    $stmt->bind_param("sss", $full_name, $email, $phone);
-                    $stmt->execute();
+            // Check if email or phone already exists
+            $check = $conn->prepare("SELECT member_id FROM members WHERE email = ? OR phone = ?");
+            $check->bind_param("ss", $email, $phone);
+            $check->execute();
+            if ($check->get_result()->num_rows > 0) {
+                $error = "Email or phone already registered.";
+            } else {
+                // 1. Insert into members → auto-generates member_id (AUTO_INCREMENT)
+                $stmt = $conn->prepare("INSERT INTO members (full_name, email, phone, date_registered) VALUES (?, ?, ?, NOW())");
+                $stmt->bind_param("sss", $full_name, $email, $phone);
+                $stmt->execute();
 
-                    $member_id = $conn->insert_id;
-                    $username  = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);
-                    $hash      = password_hash($password, PASSWORD_DEFAULT);
+                $member_id = $conn->insert_id;                    // ← this is the auto-generated ID
+                $username  = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);  // ← MEM000001, MEM000002...
 
-                    // Create login account
-                    $user_stmt = $conn->prepare("INSERT INTO users (username, password, member_id) VALUES (?, ?, ?)");
-                    $user_stmt->bind_param("ssi", $username, $hash, $member_id);
-                    $user_stmt->execute();
+                // 2. Save password in users table
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $user_stmt = $conn->prepare("INSERT INTO users (username, password, member_id) VALUES (?, ?, ?)");
+                $user_stmt->bind_param("ssi", $username, $hash, $member_id);
+                $user_stmt->execute();
 
-                    $success = "Account created successfully!<br><strong>Username: $username</strong><br>You can now <a href='login.php'>log in</a>.";
-                }
-            } catch (Exception $e) {
-                // This will show the real error only while you are testing
-                $error = "Database error: " . $e->getMessage();
+                $success = "Account created successfully!<br><strong>Your Member ID: $username</strong><br>You can now <a href='login.php'>log in</a>.";
             }
         }
     }
@@ -71,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register • CedisPay</title>
     <style>
-        :root {--primary-color:#003366;--primary-color-light:#004488;--text-color:#333;--background-color:#f4f4f4;--white:#fff;--error-color:#ff3860;--success-color:#28a745;}
+        :root{--primary-color:#003366;--primary-color-light:#004488;--text-color:#333;--background-color:#f4f4f4;--white:#fff;--error-color:#ff3860;--success-color:#28a745;}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:Arial,sans-serif;background:var(--background-color);color:var(--text-color);min-height:100vh;display:flex;justify-content:center;align-items:center;}
         .main-container{display:grid;grid-template-columns:1fr 1fr;width:90%;max-width:1000px;box-shadow:0 10px 30px rgba(0,0,0,.1);border-radius:10px;overflow:hidden;}
@@ -95,26 +86,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .back-to-login a{color:var(--primary-color);font-weight:600;text-decoration:none;}
         @media(max-width:768px){.main-container{grid-template-columns:1fr;}.col-2{display:none;}}
     </style>
+</style>
 </head>
 <body>
 <div class="main-container">
     <div class="container">
         <div class="logo"><img src="../assets/profile_3135715.png" alt="CedisPay"></div>
         <h2>Join CedisPay</h2>
-
         <?php if($error): ?><div class="alert alert-error"><?=htmlspecialchars($error)?></div><?php endif; ?>
         <?php if($success): ?><div class="alert alert-success"><?=$success?></div><?php endif; ?>
-
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>">
             <div class="form-group"><input type="text" name="full_name" required><label>Full Name</label></div>
             <div class="form-group"><input type="email" name="email" required><label>Email Address</label></div>
-            <div class="form-group"><input type="text" name="phone" required><label>Phone Number (e.g. 0241234567)</label></div>
+            <div class="form-group"><input type="text" name="phone" required><label>Phone Number</label></div>
             <div class="form-group"><input type="password" name="password" required minlength="8"><label>Create Password</label></div>
             <div class="form-group"><input type="password" name="confirm_password" required minlength="8"><label>Confirm Password</label></div>
             <button type="submit">Create Account</button>
         </form>
-
         <div class="back-to-login">Already have an account? <a href="login.php">Log in</a></div>
     </div>
     <div class="col-2"><img src="../assets/cedispay-logo-white.png" alt="CedisPay"></div>
