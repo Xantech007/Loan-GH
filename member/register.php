@@ -1,5 +1,5 @@
 <?php
-// register.php - Final working version
+// register.php - Final version: everything saved in members table only
 session_start();
 require '../config/db.php';
 
@@ -28,26 +28,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($password) < 8) {
             $error = "Password must be at least 8 characters.";
         } else {
-            // Check if email or phone already exists
+            // Check duplicate
             $check = $conn->prepare("SELECT member_id FROM members WHERE email = ? OR phone = ?");
             $check->bind_param("ss", $email, $phone);
             $check->execute();
             if ($check->get_result()->num_rows > 0) {
                 $error = "Email or phone already registered.";
             } else {
-                // 1. Insert into members → auto-generates member_id (AUTO_INCREMENT)
-                $stmt = $conn->prepare("INSERT INTO members (full_name, email, phone, date_registered) VALUES (?, ?, ?, NOW())");
-                $stmt->bind_param("sss", $full_name, $email, $phone);
+                // Insert everything (including password) into members table
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $username = ""; // will be generated after insert
+
+                $stmt = $conn->prepare("INSERT INTO members (full_name, email, phone, password, date_registered) VALUES (?, ?, ?, ?, NOW())");
+                $stmt->bind_param("ssss", $full_name, $email, $phone, $hash);
                 $stmt->execute();
 
-                $member_id = $conn->insert_id;                    // ← this is the auto-generated ID
-                $username  = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);  // ← MEM000001, MEM000002...
+                $member_id = $conn->insert_id; // auto-generated ID
+                $username  = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);
 
-                // 2. Save password in users table
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $user_stmt = $conn->prepare("INSERT INTO users (username, password, member_id) VALUES (?, ?, ?)");
-                $user_stmt->bind_param("ssi", $username, $hash, $member_id);
-                $user_stmt->execute();
+                // Update the same row with the generated Member ID as username
+                $update = $conn->prepare("UPDATE members SET username = ? WHERE member_id = ?");
+                $update->bind_param("si", $username, $member_id);
+                $update->execute();
 
                 $success = "Account created successfully!<br><strong>Your Member ID: $username</strong><br>You can now <a href='login.php'>log in</a>.";
             }
@@ -83,10 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .alert-error{background:#ffebee;color:var(--error-color);border:1px solid #ffcdd2;}
         .alert-success{background:#e8f5e9;color:var(--success-color);border:1px solid #c8e6c9;}
         .back-to-login{text-align:center;margin-top:25px;}
-        .back-to-login a{color:var(--primary-color);font-weight:600;text-decoration:none;}
+        .back-to-login a{color:var(--primary-color);font-weight:600;}
         @media(max-width:768px){.main-container{grid-template-columns:1fr;}.col-2{display:none;}}
     </style>
-</style>
 </head>
 <body>
 <div class="main-container">
@@ -99,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>">
             <div class="form-group"><input type="text" name="full_name" required><label>Full Name</label></div>
             <div class="form-group"><input type="email" name="email" required><label>Email Address</label></div>
-            <div class="form-group"><input type="text" name="phone" required><label>Phone Number</label></div>
+            <div class="form-group"><input type="text" name="phone" required><label>Phone Number (e.g. 0241234567)</label></div>
             <div class="form-group"><input type="password" name="password" required minlength="8"><label>Create Password</label></div>
             <div class="form-group"><input type="password" name="confirm_password" required minlength="8"><label>Confirm Password</label></div>
             <button type="submit">Create Account</button>
