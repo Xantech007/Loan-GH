@@ -1,5 +1,5 @@
 <?php
-// login.php - CedisPay Member Login (Login with Email / Phone / Member ID)
+// login.php - FINAL WORKING VERSION (everything in members table only)
 session_start();
 require '../config/db.php';
 
@@ -19,13 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($login_input) || empty($password)) {
             $error = "Please enter your login details.";
         } else {
-            // Search in users.username OR members.email OR members.phone
-            $sql = "SELECT u.username, u.password, u.member_id, m.full_name 
-                    FROM users u
-                    JOIN members m ON u.member_id = m.member_id
-                    WHERE u.username = ? 
-                       OR m.email = ? 
-                       OR m.phone = ?";
+            // Login using: username (MEM000001), email, OR phone
+            $sql = "SELECT member_id, username, full_name, password 
+                    FROM members 
+                    WHERE username = ? 
+                       OR email = ? 
+                       OR phone = ? 
+                    LIMIT 1";
 
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("sss", $login_input, $login_input, $login_input);
@@ -34,17 +34,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($result->num_rows === 1) {
                 $user = $result->fetch_assoc();
+
                 if (password_verify($password, $user['password'])) {
+                    // Success!
                     session_regenerate_id(true);
                     $_SESSION['user_id']    = $user['member_id'];
                     $_SESSION['username']   = $user['username'];
                     $_SESSION['full_name']  = $user['full_name'] ?? 'Member';
                     $_SESSION['logged_in']  = true;
+
                     header("Location: dashboard.php");
                     exit();
                 }
             }
-            $error = "Invalid login credentials.";
+            $error = "Invalid Member ID, email, phone, or password.";
         }
     }
 }
@@ -67,17 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .logo img{width:120px;}
         h2{text-align:center;color:var(--primary-color);margin:10px 0 40px;font-size:28px;}
         .form-group{position:relative;margin-bottom:2rem;}
-        .form-group input{
-            width:100%;padding:20px 0 8px;font-size:16px;border:none;border-bottom:1px solid #ddd;outline:none;background:transparent;
-        }
-        .form-group label{
-            position:absolute;top:20px;left:0;color:#999;pointer-events:none;transition:.3s;font-size:16px;
-        }
-        /* This fixes label overlapping when input has value */
-        .form-group input:focus ~ label,
-        .form-group input:not(:placeholder-shown) ~ label {
-            top:-12px;font-size:13px;color:var(--primary-color);font-weight:500;
-        }
+        .form-group input{width:100%;padding:20px 0 8px;font-size:16px;border:none;border-bottom:1px solid #ddd;outline:none;background:transparent;}
+        .form-group label{position:absolute;top:20px;left:0;color:#999;pointer-events:none;transition:.3s;font-size:16px;}
+        .form-group input:focus~label,.form-group input:not(:placeholder-shown)~label{top:-12px;font-size:13px;color:var(--primary-color);font-weight:500;}
         .form-group input:focus{border-bottom:2px solid var(--primary-color);}
         button{width:100%;padding:14px;background:var(--primary-color);color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer;margin-top:10px;}
         button:hover{background:var(--primary-color-light);}
@@ -102,8 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>">
 
             <div class="form-group">
-                <input type="text" name="login_input" id="login_input" required placeholder=" ">
-                <label for="login_input">Member ID, Email or Phone</label>
+                <input type="text" name="login_input" required placeholder=" ">
+                <label>Member ID, Email or Phone</label>
             </div>
 
             <div class="form-group">
