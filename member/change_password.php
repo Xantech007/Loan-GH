@@ -1,82 +1,132 @@
 <?php
+// change_password.php - FINAL & SECURE VERSION (2025)
 session_start();
-include('../config/db.php'); // Database connection
 
-// Ensure the user is logged in
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+// Security: Must be logged in with new session system
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['member_id'])) {
+    header('Location: login.php');
     exit();
 }
 
-$member_id = $_SESSION['username'];
+require '../config/db.php';
+$member_id = (int)$_SESSION['member_id'];
+
 $message = "";
 
-// Handle password change request
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $current_password = $_POST['current_password'];
-    $new_password = $_POST['new_password'];
-    $confirm_password = $_POST['confirm_password'];
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $current_password = $_POST['current_password'] ?? '';
+    $new_password     = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
 
-    // Fetch the stored password from the database
-    $sql = "SELECT password FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $member_id);
-    $stmt->execute();
-    $stmt->bind_result($stored_password);
-    $stmt->fetch();
-    $stmt->close();
-
-    // Verify the current password
-    if ($current_password !== $stored_password) {
-        $message = "<div class='alert alert-danger'>Current password is incorrect!</div>";
+    // Basic validation
+    if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+        $message = "<div class='alert alert-danger'>All fields are required.</div>";
     } elseif ($new_password !== $confirm_password) {
         $message = "<div class='alert alert-danger'>New passwords do not match!</div>";
+    } elseif (strlen($new_password) < 8) {
+        $message = "<div class='alert alert-danger'>New password must be at least 8 characters long.</div>";
     } else {
-        // Update the password in the database (without hashing)
-        $update_sql = "UPDATE users SET password = ? WHERE id = ?";
-        $update_stmt = $conn->prepare($update_sql);
-        $update_stmt->bind_param("si", $new_password, $member_id);
+        // Fetch the stored hashed password
+        $stmt = $conn->prepare("SELECT password FROM members WHERE member_id = ?");
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($update_stmt->execute()) {
-            $message = "<div class='alert alert-success'>Password changed successfully!</div>";
+        if ($result->num_rows !== 1) {
+            $message = "<div class='alert alert-danger'>Account not found.</div>";
         } else {
-            $message = "<div class='alert alert-danger'>Error updating password!</div>";
-        }
+            $user = $result->fetch_assoc();
+            $stored_hash = $user['password'];
 
-        $update_stmt->close();
+            // Verify current password
+            if (!password_verify($current_password, $stored_hash)) {
+                $message = "<div class='alert alert-danger'>Current password is incorrect!</div>";
+            } else {
+                // Hash the new password
+                $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
+
+                // Update password in members table
+                $update = $conn->prepare("UPDATE members SET password = ? WHERE member_id = ?");
+                $update->bind_param("si", $new_hash, $member_id);
+
+                if ($update->execute()) {
+                    $message = "<div class='alert alert-success'>
+                        <strong>Success!</strong> Your password has been changed successfully.
+                    </div>";
+                } else {
+                    $message = "<div class='alert alert-danger'>Error updating password. Please try again.</div>";
+                }
+                $update->close();
+            }
+        }
+        $stmt->close();
     }
 }
+
+$pageTitle = 'Change Password';
+include './includes/member_header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Password</title>
-    <link rel="stylesheet" href="../assets/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="mb-4">Change Password</h2>
+<div class="main container-settings">
+    <button class="open-btn" onclick="toggleSidebar()">Menu</button>
+
+    <div class="page-header">
+        <h2 class="main-header">Change Password</h2>
+        <h5>Keep your account secure with a strong password</h5>
+    </div>
+
+    <div class="form-container-settings" style="max-width: 600px; margin: 0 auto;">
         <?php echo $message; ?>
-        <form action="" method="POST">
-            <div class="mb-3">
-                <label class="form-label">Current Password</label>
-                <input type="password" name="current_password" class="form-control" required>
+
+        <form action="change_password.php" method="POST" style="background:white; padding:30px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.1);">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label for="current_password"><strong>Current Password</strong></label>
+                    <input type="password" 
+                           name="current_password" 
+                           id="current_password" 
+                           class="form-control" 
+                           required 
+                           placeholder="Enter your current password">
+                </div>
+
+                <div class="info-item">
+                    <label for="new_password"><strong>New Password</strong></label>
+                    <input type="password" 
+                           name="new_password" 
+                           id="new_password" 
+                           class="form-control" 
+                           required 
+                           minlength="8"
+                           placeholder="At least 8 characters">
+                </div>
+
+                <div class="info-item">
+                    <label for="confirm_password"><strong>Confirm New Password</strong></label>
+                    <input type="password" 
+                           name="confirm_password" 
+                           id="confirm_password" 
+                           class="form-control" 
+                           required 
+                           placeholder="Type the new password again">
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">New Password</label>
-                <input type="password" name="new_password" class="form-control" required>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <button type="submit" class="btn btn-primary" style="padding:12px 40px; font-size:1.1em;">
+                    Update Password
+                </button>
+                <a href="dashboard.php" class="btn btn-secondary" style="margin-left:15px; padding:12px 30px;">
+                    Back to Dashboard
+                </a>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Confirm New Password</label>
-                <input type="password" name="confirm_password" class="form-control" required>
+
+            <div style="margin-top: 20px; font-size: 0.9em; color: #666; text-align:center;">
+                <p><strong>Password Requirements:</strong> Minimum 8 characters</p>
             </div>
-            <button type="submit" class="btn btn-primary">Update Password</button>
-            <a href="dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
         </form>
     </div>
-</body>
-</html>
+</div>
+
+<?php include './includes/member_footer.php'; ?>
