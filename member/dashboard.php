@@ -1,30 +1,42 @@
 <?php
-// dashboard.php - UPDATED & WORKING VERSION
+// dashboard.php - FINAL VERSION: Pulls fresh data from members table
 session_start();
 
-// NEW SESSION CHECK (matches your current login.php)
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+// 1. Security check – must be logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['member_id'])) {
     header('Location: ./login.php');
     exit();
 }
 
-// Optional: extra security
-session_regenerate_id(true);
+require '../config/db.php'; // Database connection
+
+$member_id = (int)$_SESSION['member_id']; // Always ensure it's an integer
+
+// 2. Fetch fresh, real data from members table
+$stmt = $conn->prepare("SELECT member_id, full_name, email, phone, date_registered FROM members WHERE member_id = ?");
+$stmt->bind_param("i", $member_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows !== 1) {
+    // User not found? Force logout
+    session_destroy();
+    header('Location: ./login.php');
+    exit();
+}
+
+$user = $result->fetch_assoc();
+
+// Format Member ID as MEM000001
+$display_id = "MEM" . str_pad($user['member_id'], 6, "0", STR_PAD_LEFT);
 
 $pageTitle = 'Dashboard';
 include './includes/member_header.php';
-
-// Safely get user data from session (set in login.php)
-$member_id     = $_SESSION['member_id'] ?? 0;
-$display_id    = $_SESSION['display_id'] ?? 'MEM000000';  // e.g. MEM000007
-$full_name     = htmlspecialchars($_SESSION['full_name'] ?? 'Member');
-$email         = htmlspecialchars($_SESSION['email'] ?? 'Not set');
-$phone         = htmlspecialchars($_SESSION['phone'] ?? 'Not set');
 ?>
 
 <div class="main dashboard-main">
     <div class="page-header">
-        <h2 class="main-header">Welcome back, <?= $full_name ?>!</h2>
+        <h2 class="main-header">Welcome back, <?= htmlspecialchars($user['full_name']) ?>!</h2>
         <h5>Get an overview of your account status, recent activities, and quick access to key features.</h5>
     </div>
 
@@ -57,19 +69,21 @@ $phone         = htmlspecialchars($_SESSION['phone'] ?? 'Not set');
             <h3>Account Summary</h3>
             <div class="grid-dashboard-summary">
                 <p><strong>Member ID:</strong> <span class="highlight"><?= $display_id ?></span></p>
-                <p><strong>Full Name:</strong> <span><?= $full_name ?></span></p>
-                <p><strong>Email:</strong> <span><?= $email ?></span></p>
-                <p><strong>Phone:</strong> <span><?= $phone ?></span></p>
+                <p><strong>Full Name:</strong> <span><?= htmlspecialchars($user['full_name']) ?></span></p>
+                <p><strong>Email:</strong> <span><?= htmlspecialchars($user['email']) ?></span></p>
+                <p><strong>Phone:</strong> <span><?= htmlspecialchars($user['phone']) ?></span></p>
+                <p><strong>Member Since:</strong> <span><?= date("M d, Y", strtotime($user['date_registered'])) ?></span></p>
                 <p><strong>Account Status:</strong> <span id="active-span" style="color:green;font-weight:bold;">Active</span></p>
             </div>
         </div>
 
         <div class="overview recent-activities-account-summary">
             <h3>Recent Activities</h3>
-            <ul style="margin:15px 0; line-height:1.8;">
+            <ul style="margin:15px 0; line-height:1.8; color:#555;">
                 <li>Loan Payment of GHS 1,000 made on Feb 1, 2025.</li>
                 <li>New Loan Application submitted on Jan 25, 2025.</li>
                 <li>Profile Updated on Jan 15, 2025.</li>
+                <li>Account activated on <?= date("M d, Y", strtotime($user['date_registered'])) ?>.</li>
             </ul>
         </div>
     </div>
