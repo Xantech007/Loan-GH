@@ -1,5 +1,6 @@
 <?php
-// login.php - FINAL VERSION (works with your current members table only)
+// login.php - FINAL & WORKING VERSION
+// Logs in with: MEM000001, Email, or Phone → redirects to dashboard.php
 session_start();
 require '../config/db.php';
 
@@ -19,14 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($login_input) || empty($password)) {
             $error = "Please fill in all fields.";
         } else {
-            // Step 1: Detect if input looks like a Member ID (MEMxxxxxx)
             $member_id = null;
+
+            // Check if input is a Member ID like MEM000001
             if (preg_match('/^MEM\d{6,}$/i', $login_input)) {
-                // Extract the numeric part after "MEM"
                 $member_id = (int) substr($login_input, 3); // MEM000007 → 7
             }
 
-            // Step 2: Build the query
+            // Build query
             $sql = "SELECT member_id, full_name, password FROM members WHERE ";
             $params = [];
             $types  = "";
@@ -51,17 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $user = $result->fetch_assoc();
 
                 if (password_verify($password, $user['password'])) {
+                    // SUCCESSFUL LOGIN
                     session_regenerate_id(true);
 
                     $_SESSION['member_id']   = $user['member_id'];
                     $_SESSION['full_name']   = $user['full_name'];
                     $_SESSION['logged_in']   = true;
+                    $_SESSION['display_id']  = "MEM" . str_pad($user['member_id'], 6, "0", STR_PAD_LEFT);
 
-                    // Optional: store formatted Member ID for display
-                    $_SESSION['display_id'] = "MEM" . str_pad($user['member_id'], 6, "0", STR_PAD_LEFT);
-
+                    // THIS LINE REDIRECTS TO DASHBOARD
                     header("Location: dashboard.php");
-                    exit();
+                    exit(); // Always exit after header redirect
                 }
             }
 
