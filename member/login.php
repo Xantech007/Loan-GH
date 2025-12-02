@@ -1,5 +1,5 @@
 <?php
-// login.php - CedisPay Member Login (Login with Email / Phone / Member ID)
+// login.php - FINAL VERSION (works with your current members table only)
 session_start();
 require '../config/db.php';
 
@@ -17,33 +17,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password    = $_POST['password'] ?? '';
 
         if (empty($login_input) || empty($password)) {
-            $error = "Please enter your login details.";
+            $error = "Please fill in all fields.";
         } else {
-            // Search in users.username OR members.email OR members.phone
-            $sql = "SELECT u.username, u.password, u.member_id, m.full_name 
-                    FROM users u
-                    JOIN members m ON u.member_id = m.member_id
-                    WHERE u.username = ? 
-                       OR m.email = ? 
-                       OR m.phone = ?";
+            // Step 1: Detect if input looks like a Member ID (MEMxxxxxx)
+            $member_id = null;
+            if (preg_match('/^MEM\d{6,}$/i', $login_input)) {
+                // Extract the numeric part after "MEM"
+                $member_id = (int) substr($login_input, 3); // MEM000007 → 7
+            }
+
+            // Step 2: Build the query
+            $sql = "SELECT member_id, full_name, password FROM members WHERE ";
+            $params = [];
+            $types  = "";
+
+            if ($member_id !== null) {
+                $sql .= "member_id = ?";
+                $params[] = $member_id;
+                $types .= "i";
+            } else {
+                $sql .= "(email = ? OR phone = ?)";
+                $params[] = $login_input;
+                $params[] = $login_input;
+                $types .= "ss";
+            }
 
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sss", $login_input, $login_input, $login_input);
+            $stmt->bind_param($types, ...$params);
             $stmt->execute();
             $result = $stmt->get_result();
 
             if ($result->num_rows === 1) {
                 $user = $result->fetch_assoc();
+
                 if (password_verify($password, $user['password'])) {
                     session_regenerate_id(true);
-                    $_SESSION['user_id']    = $user['member_id'];
-                    $_SESSION['username']   = $user['username'];
-                    $_SESSION['full_name']  = $user['full_name'] ?? 'Member';
-                    $_SESSION['logged_in']  = true;
+
+                    $_SESSION['member_id']   = $user['member_id'];
+                    $_SESSION['full_name']   = $user['full_name'];
+                    $_SESSION['logged_in']   = true;
+
+                    // Optional: store formatted Member ID for display
+                    $_SESSION['display_id'] = "MEM" . str_pad($user['member_id'], 6, "0", STR_PAD_LEFT);
+
                     header("Location: dashboard.php");
                     exit();
                 }
             }
+
             $error = "Invalid login credentials.";
         }
     }
@@ -67,17 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .logo img{width:120px;}
         h2{text-align:center;color:var(--primary-color);margin:10px 0 40px;font-size:28px;}
         .form-group{position:relative;margin-bottom:2rem;}
-        .form-group input{
-            width:100%;padding:20px 0 8px;font-size:16px;border:none;border-bottom:1px solid #ddd;outline:none;background:transparent;
-        }
-        .form-group label{
-            position:absolute;top:20px;left:0;color:#999;pointer-events:none;transition:.3s;font-size:16px;
-        }
-        /* This fixes label overlapping when input has value */
+        .form-group input{width:100%;padding:20px 0 8px;font-size:16px;border:none;border-bottom:1px solid #ddd;outline:none;background:transparent;}
+        .form-group label{position:absolute;top:20px;left:0;color:#999;pointer-events:none;transition:.3s;font-size:16px;}
         .form-group input:focus ~ label,
-        .form-group input:not(:placeholder-shown) ~ label {
-            top:-12px;font-size:13px;color:var(--primary-color);font-weight:500;
-        }
+        .form-group input:not(:placeholder-shown) ~ label {top:-12px;font-size:13px;color:var(--primary-color);font-weight:500;}
         .form-group input:focus{border-bottom:2px solid var(--primary-color);}
         button{width:100%;padding:14px;background:var(--primary-color);color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer;margin-top:10px;}
         button:hover{background:var(--primary-color-light);}
@@ -93,33 +107,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <div class="logo"><img src="../assets/profile_3135715.png" alt="CedisPay"></div>
         <h2>Member Login</h2>
-
         <?php if($error): ?>
             <div class="alert"><?=htmlspecialchars($error)?></div>
         <?php endif; ?>
-
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?=$_SESSION['csrf_token']?>">
-
             <div class="form-group">
-                <input type="text" name="login_input" id="login_input" required placeholder=" ">
-                <label for="login_input">Member ID, Email or Phone</label>
+                <input type="text" name="login_input" required placeholder=" ">
+                <label>Member ID, Email or Phone</label>
             </div>
-
             <div class="form-group">
                 <input type="password" name="password" required placeholder=" ">
                 <label>Password</label>
             </div>
-
             <a href="#" class="forgot-password">Forgot Password?</a>
             <button type="submit">Log In</button>
         </form>
-
         <div class="dont-have">
             Don't have an account? <a href="register.php">Apply to join</a>
         </div>
     </div>
-
     <div class="col-2">
         <img src="../assets/cedispay-logo-white.png" alt="CedisPay">
     </div>
