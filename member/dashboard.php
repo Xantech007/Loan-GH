@@ -1,9 +1,9 @@
 <?php
-// dashboard.php - FINAL FIXED VERSION
+// dashboard.php - FINAL VERSION WITH REAL DATA
 session_start();
 require '../config/db.php';
 
-// Security: Must be logged in
+// === 1. Security: Must be logged in ===
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['member_id'])) {
     header('Location: ./login.php');
     exit();
@@ -11,7 +11,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset(
 
 $member_id = (int)$_SESSION['member_id'];
 
-// Fetch fresh member profile
+// === 2. Fetch Member Profile (always fresh) ===
 $stmt = $conn->prepare("SELECT full_name, email, phone, date_registered FROM members WHERE member_id = ?");
 $stmt->bind_param("i", $member_id);
 $stmt->execute();
@@ -26,108 +26,138 @@ if (!$user) {
 
 $display_id = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);
 $member_since = date("M d, Y", strtotime($user['date_registered']));
-$pageTitle = 'Dashboard';
 
-include './includes/member_header.php'; // This now opens <html>, <body>, sidebar, and <div class="main">
+$pageTitle = 'Dashboard';
+include './includes/member_header.php';
+
+// === 3. Real Financial Data (safe if tables don't exist yet) ===
+
+// Active Loans
+$active_loans = 0;
+if ($conn->query("SHOW TABLES LIKE 'loans'")->num_rows > 0) {
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM loans WHERE member_id = ? AND status = 'approved'");
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $active_loans = $stmt->get_result()->fetch_array()[0];
+}
+
+// Outstanding Balance
+$outstanding = 0;
+if ($conn->query("SHOW TABLES LIKE 'loan_repayments'")->num_rows > 0) {
+    $stmt = $conn->prepare("
+        SELECT COALESCE(SUM(amount_due - amount_paid), 0) 
+        FROM loan_repayments r 
+        JOIN loans l ON r.loan_id = l.loan_id 
+        WHERE l.member_id = ? AND r.status != 'paid'
+    ");
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $outstanding = $stmt->get_result()->fetch_array()[0];
+}
+
+// Next Due Date
+$next_due = 'No upcoming payments';
+if ($conn->query("SHOW TABLES LIKE 'loan_repayments'")->num_rows > 0) {
+    $stmt = $conn->prepare("
+        SELECT due_date FROM loan_repayments r
+        JOIN loans l ON r.loan_id = l.loan_id
+        WHERE l.member_id = ? AND r.status != 'paid' AND r.due_date >= CURDATE()
+        ORDER BY r.due_date ASC LIMIT 1
+    ");
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_array();
+    if ($res) $next_due = date("M d, Y", strtotime($res[0]));
+}
+
+// Recent Activities (from activities table or fallback)
+$activities = [];
+if ($conn->query("SHOW TABLES LIKE 'activities'")->num_rows > 0) {
+    $stmt = $conn->prepare("
+        SELECT title, description, created_at 
+        FROM activities 
+        WHERE member_id = ? 
+        ORDER BY created_at DESC LIMIT 6
+    ");
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $activities = $stmt->get_result();
+} else {
+    // Fallback static activities if table doesn't exist yet
+    $activities = new mysqli_result($conn); // dummy
+    $activities->free_result = function() {};
+}
 ?>
 
-<div class="page-header text-center text-md-start mb-5">
-    <h2 class="main-header fw-bold">Welcome back, <?= htmlspecialchars($user['full_name']) ?>!</h2>
-    <p class="text-muted lead">Here's an overview of your account status and recent activities.</p>
+<div class="main dashboard-main">
+    <div class="page-header">
+        <h2 class="main-header">Welcome back, <?= htmlspecialchars($user['full_name']) ?>!</h2>
+        <h5>Get an overview of your account status, recent activities, and quick access to key features.</h5>
+    </div>
+
+    <!-- Real Stats Cards -->
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="dashboard-card-top">
+                <h3>Active Loans</h3>
+                <i class="fa-regular fa-credit-card"></i>
+            </div>
+            <p><strong><?= $active_loans ?></strong> Active Loan<?= $active_loans == 1 ? '' : 's' ?></p>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="dashboard-card-top">
+                <h3>Outstanding Balance</h3>
+                <i class="fa-solid fa-money-bills"></i>
+            </div>
+            <p><strong>GHS <?= number_format($outstanding, 2) ?></strong></p>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="dashboard-card-top">
+                <h3>Upcoming Due Date</h3>
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <p><strong><?= $next_due ?></strong></p>
+        </div>
+    </div>
+
+    <div class="dashboard-summary">
+        <div class="overview dashboard-account-summary">
+            <h3>Account Summary</h3>
+            <div class="grid-dashboard-summary">
+                <p><strong>Member ID:</strong> <span class="highlight"><?= $display_id ?></span></p>
+                <p><strong>Full Name:</strong> <span><?= htmlspecialchars($user['full_name']) ?></span></p>
+                <p><strong>Email:</strong> <span><?= htmlspecialchars($user['email']) ?></span></p>
+                <p><strong>Phone:</strong> <span><?= htmlspecialchars($user['phone']) ?></span></p>
+                <p><strong>Member Since:</strong> <span><?= $member_since ?></span></p>
+                <p><strong>Account Status:</strong> <span style="color:green;font-weight:bold;">Active</span></p>
+            </div>
+        </div>
+
+        <div class="overview recent-activities-account-summary">
+            <h3>Recent Activities</h3>
+            <?php if ($activities->num_rows > 0): ?>
+                <ul style="margin:15px 0; line-height:1.9; color:#444;">
+                    <?php while ($act = $activities->fetch_assoc()): ?>
+                        <li>
+                            <strong><?= htmlspecialchars($act['title']) ?></strong><br>
+                            <small><?= htmlspecialchars($act['description']) ?> — 
+                                <?= date("M d, Y \a\\t g:i A", strtotime($act['created_at'])) ?>
+                            </small>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            <?php else: ?>
+                <p style="color:#666; font-style:italic;">No recent activity.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <a href="apply_loan.php" class="dashboard-btn">Apply for a New Loan</a>
 </div>
 
-<!-- Stats Cards -->
-<div class="dashboard-grid row row-cols-1 row-cols-md-3 g-4 mb-5">
-    <div class="col">
-        <div class="dashboard-card card h-100 shadow-sm border-0">
-            <div class="card-body d-flex justify-content-between align-items-start">
-                <div>
-                    <h5 class="card-title text-muted">Active Loans</h5>
-                    <h3 class="fw-bold text-primary"><?= $active_loans ?? 0 ?></h3>
-                    <p class="mb-0 text-muted small">Active Loan<?= ($active_loans ?? 0) == 1 ? '' : 's' ?></p>
-                </div>
-                <i class="fa-regular fa-credit-card fa-2x text-primary opacity-75"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="dashboard-card card h-100 shadow-sm border-0">
-            <div class="card-body d-flex justify-content-between align-items-start">
-                <div>
-                    <h5 class="card-title text-muted">Outstanding Balance</h5>
-                    <h3 class="fw-bold text-danger">GHS <?= number_format($outstanding ?? 0, 2) ?></h3>
-                </div>
-                <i class="fa-solid fa-money-bills fa-2x text-danger opacity-75"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col">
-        <div class="dashboard-card card h-100 shadow-sm border-0">
-            <div class="card-body d-flex justify-content-between align-items-start">
-                <div>
-                    <h5 class="card-title text-muted">Next Due Date</h5>
-                    <h4 class="fw-bold text-success"><?= $next_due ?? 'No upcoming payments' ?></h4>
-                </div>
-                <i class="fa-regular fa-calendar fa-2x text-success opacity-75"></i>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Account Summary + Recent Activities -->
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="overview card shadow-sm h-100">
-            <div class="card-body">
-                <h4 class="card-title mb-4">Account Summary</h4>
-                <div class="grid-dashboard-summary">
-                    <p><strong>Member ID:</strong> <span class="highlight"><?= $display_id ?></span></p>
-                    <p><strong>Full Name:</strong> <?= htmlspecialchars($user['full_name']) ?></p>
-                    <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
-                    <p><strong>Phone:</strong> <?= htmlspecialchars($user['phone']) ?></p>
-                    <p><strong>Member Since:</strong> <?= $member_since ?></p>
-                    <p><strong>Status:</strong> <span class="text-success fw-bold">Active</span></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="overview card shadow-sm h-100">
-            <div class="card-body">
-                <h4 class="card-title mb-4">Recent Activities</h4>
-                <?php if (isset($activities) && $activities->num_rows > 0): ?>
-                    <ul class="list-unstyled" style="line-height: 2;">
-                        <?php while ($act = $activities->fetch_assoc()): ?>
-                            <li class="border-bottom pb-2 mb-2">
-                                <strong><?= htmlspecialchars($act['title']) ?></strong><br>
-                                <small class="text-muted">
-                                    <?= htmlspecialchars($act['description']) ?> —
-                                    <?= date("M d, Y \a\\t g:i A", strtotime($act['created_at'])) ?>
-                                </small>
-                            </li>
-                        <?php endwhile; ?>
-                    </ul>
-                <?php else: ?>
-                    <p class="text-muted fst-italic">No recent activity.</p>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="text-center mt-5">
-    <a href="apply_loan.php" class="btn btn-primary btn-lg px-5 py-3 dashboard-btn">
-        <i class="fas fa-plus-circle me-2"></i> Apply for a New Loan
-    </a>
-</div>
-
-<?php
-// Free result if exists
-if (isset($activities)) $activities->free_result();
-
-// Close </div><!-- /.main --> and </body></html>
-include './includes/member_footer.php';
+<?php 
+$activities->free_result ?? null;
+include './includes/member_footer.php'; 
 ?>
