@@ -1,93 +1,88 @@
-<!-- </div> -->
-<!-- </div>  -->
-<!-- End of content -->
+<?php // ./includes/member_footer.php ?>
+    </div> <!-- End of .main -->
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="../script.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <!-- Bootstrap 5 Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+            crossorigin="anonymous"></script>
 
-<!-- MY LONAS -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery (only once) + DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Initialize DataTables -->
     <script>
-        $(document).ready(function() {
-            $('#loanTable').DataTable();
-            $('#repaymentTable').DataTable();
+        $(document).ready(function () {
+            // Initialize all tables with these IDs
+            $('#loanTable, #repaymentTable, #myLoansTable, #transactionsTable').DataTable({
+                paging: true,
+                searching: true,
+                info: true,
+                lengthChange: false,
+                pageLength: 10,
+                language: {
+                    search: "Search records:",
+                    paginate: {
+                        previous: "Prev",
+                        next: "Next"
+                    }
+                }
+            });
         });
     </script>
 
-
-<!-- LOAN APPLICATION -->
-<script>
+    <!-- Loan Form Switcher -->
+    <script>
         function showForm(formId) {
-            document.querySelectorAll('.loan-form').forEach(form => form.classList.add('hidden'));
+            // Hide all forms
+            document.querySelectorAll('.loan-form').forEach(form => {
+                form.classList.add('hidden');
+            });
+            // Show selected form
             document.getElementById(formId).classList.remove('hidden');
-            document.querySelectorAll('.loan-btn').forEach(btn => btn.classList.remove('active'));
+
+            // Update active button state
+            document.querySelectorAll('.loan-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
             event.target.classList.add('active');
         }
     </script>
 
-<!-- NOTIFICATIONS -->
-<!-- <script>
-    function fetchNotifications() {
-    fetch('../admin/member/fetch_notifications.php')
-        .then(response => response.json())  // Fix: Removed semicolon here
-        .then(data => {
-            const list = document.getElementById('notificationList');
-            const count = document.getElementById('notificationCount');
-            
-            list.innerHTML = '';
-            count.textContent = data.length;
+    <!-- Sidebar Toggle - Works perfectly with your new header -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
 
-            data.forEach(notification => {
-                const item = document.createElement('li');
-                item.innerHTML = `${notification.title} - ${notification.message} 
-                                  <button onclick="markAsRead(${notification.id})">Mark as Read</button>`;
-                list.appendChild(item);
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Auto-show sidebar on desktop (≥768px)
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 768) {
+                document.getElementById('sidebar').classList.add('active');
+                document.getElementById('overlay').classList.remove('active');
+            }
+        });
+
+        // Optional: Close sidebar when clicking a link (mobile UX improvement)
+        document.querySelectorAll('.menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    toggleSidebar();
+                }
             });
-        })
-        .catch(error => {
-            console.error('Error fetching notifications:', error);  // Added error handling
-                });
-        }
+        });
+    </script>
 
-        function markAsRead(id) {
-            fetch('../member/notifications/update_notification.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${id}`
-            }).then(() => fetchNotifications())
-            .catch(error => {
-                console.error('Error marking notification as read:', error);  // Added error handling
-            });
-        }
+    <!-- Your custom scripts (if any) -->
+    <script src="../script.js"></script>
+    <script src="./app.js"></script>
 
-
-        function toggleNotifications() {
-            const panel = document.getElementById('notificationPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
-
-        setInterval(fetchNotifications, 5000); // Refresh every 5 seconds
-        window.onload = fetchNotifications;
-
- </script> -->
-
-
-<!-- SIDE NAVIGATION -->
- <script>
- function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
-
-    sidebar.classList.toggle("active");
-
-    // Only show overlay if screen width is less than 768px
-    if (window.innerWidth < 768) {
-        overlay.classList.toggle("active");
-    }
-}
- </script>
 </body>
 </html>
-
