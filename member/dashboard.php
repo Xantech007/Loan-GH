@@ -1,163 +1,143 @@
 <?php
-// dashboard.php - FINAL VERSION WITH REAL DATA
-session_start();
-require '../config/db.php';
+include 'includes/header.php';
+include 'includes/sidebar.php';
+include 'includes/navbar.php';
+include '../config/db.php'; // Connection file (adjust path if needed)
 
-// === 1. Security: Must be logged in ===
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['member_id'])) {
-    header('Location: ./login.php');
-    exit();
-}
+$user_id = $_SESSION['user_id'];
 
-$member_id = (int)$_SESSION['member_id'];
+// Fetch user details
+$stmt_user = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt_user->execute([$user_id]);
+$user = $stmt_user->fetch();
 
-// === 2. Fetch Member Profile (always fresh) ===
-$stmt = $conn->prepare("SELECT full_name, email, phone, date_registered FROM members WHERE member_id = ?");
-$stmt->bind_param("i", $member_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->num_rows === 1 ? $result->fetch_assoc() : null;
+// Fetch loans
+$stmt_loans = $pdo->prepare("SELECT * FROM loans WHERE user_id = ? ORDER BY applied_at DESC LIMIT 5");
+$stmt_loans->execute([$user_id]);
+$loans = $stmt_loans->fetchAll();
 
-if (!$user) {
-    session_destroy();
-    header('Location: ./login.php');
-    exit();
-}
+// Fetch recent payments
+$stmt_payments = $pdo->prepare("SELECT p.*, l.amount AS loan_amount FROM payments p JOIN loans l ON p.loan_id = l.id WHERE l.user_id = ? ORDER BY p.paid_at DESC LIMIT 5");
+$stmt_payments->execute([$user_id]);
+$payments = $stmt_payments->fetchAll();
 
-$display_id = "MEM" . str_pad($member_id, 6, "0", STR_PAD_LEFT);
-$member_since = date("M d, Y", strtotime($user['date_registered']));
+// Fetch notifications
+$stmt_notifs = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT 5");
+$stmt_notifs->execute([$user_id]);
+$notifications = $stmt_notifs->fetchAll();
 
-$pageTitle = 'Dashboard';
-include './includes/member_header.php';
-
-// === 3. Real Financial Data (safe if tables don't exist yet) ===
-
-// Active Loans
-$active_loans = 0;
-if ($conn->query("SHOW TABLES LIKE 'loans'")->num_rows > 0) {
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM loans WHERE member_id = ? AND status = 'approved'");
-    $stmt->bind_param("i", $member_id);
-    $stmt->execute();
-    $active_loans = $stmt->get_result()->fetch_array()[0];
-}
-
-// Outstanding Balance
-$outstanding = 0;
-if ($conn->query("SHOW TABLES LIKE 'loan_repayments'")->num_rows > 0) {
-    $stmt = $conn->prepare("
-        SELECT COALESCE(SUM(amount_due - amount_paid), 0) 
-        FROM loan_repayments r 
-        JOIN loans l ON r.loan_id = l.loan_id 
-        WHERE l.member_id = ? AND r.status != 'paid'
-    ");
-    $stmt->bind_param("i", $member_id);
-    $stmt->execute();
-    $outstanding = $stmt->get_result()->fetch_array()[0];
-}
-
-// Next Due Date
-$next_due = 'No upcoming payments';
-if ($conn->query("SHOW TABLES LIKE 'loan_repayments'")->num_rows > 0) {
-    $stmt = $conn->prepare("
-        SELECT due_date FROM loan_repayments r
-        JOIN loans l ON r.loan_id = l.loan_id
-        WHERE l.member_id = ? AND r.status != 'paid' AND r.due_date >= CURDATE()
-        ORDER BY r.due_date ASC LIMIT 1
-    ");
-    $stmt->bind_param("i", $member_id);
-    $stmt->execute();
-    $res = $stmt->get_result()->fetch_array();
-    if ($res) $next_due = date("M d, Y", strtotime($res[0]));
-}
-
-// Recent Activities (from activities table or fallback)
-$activities = [];
-if ($conn->query("SHOW TABLES LIKE 'activities'")->num_rows > 0) {
-    $stmt = $conn->prepare("
-        SELECT title, description, created_at 
-        FROM activities 
-        WHERE member_id = ? 
-        ORDER BY created_at DESC LIMIT 6
-    ");
-    $stmt->bind_param("i", $member_id);
-    $stmt->execute();
-    $activities = $stmt->get_result();
-} else {
-    // Fallback static activities if table doesn't exist yet
-    $activities = new mysqli_result($conn); // dummy
-    $activities->free_result = function() {};
+// Calculate total outstanding balance (example calculation)
+$total_outstanding = 0;
+foreach ($loans as $loan) {
+    if (in_array($loan['status'], ['approved', 'active'])) {
+        $total_outstanding += $loan['amount'] * (1 + $loan['interest_rate']/100);
+    }
 }
 ?>
 
-<div class="main dashboard-main">
-    <div class="page-header">
-        <h2 class="main-header">Welcome back, <?= htmlspecialchars($user['full_name']) ?>!</h2>
-        <h5>Get an overview of your account status, recent activities, and quick access to key features.</h5>
+<div class="main-content">
+    <div class="card">
+        <h2>Welcome to Your CedisPay Dashboard</h2>
+        <p>Here you can manage your loans, view payments, and stay updated with notifications.</p>
     </div>
 
-    <!-- Real Stats Cards -->
-    <div class="dashboard-grid">
-        <div class="dashboard-card">
-            <div class="dashboard-card-top">
-                <h3>Active Loans</h3>
-                <i class="fa-regular fa-credit-card"></i>
-            </div>
-            <p><strong><?= $active_loans ?></strong> Active Loan<?= $active_loans == 1 ? '' : 's' ?></p>
-        </div>
-
-        <div class="dashboard-card">
-            <div class="dashboard-card-top">
-                <h3>Outstanding Balance</h3>
-                <i class="fa-solid fa-money-bills"></i>
-            </div>
-            <p><strong>GHS <?= number_format($outstanding, 2) ?></strong></p>
-        </div>
-
-        <div class="dashboard-card">
-            <div class="dashboard-card-top">
-                <h3>Upcoming Due Date</h3>
-                <i class="fa-regular fa-calendar"></i>
-            </div>
-            <p><strong><?= $next_due ?></strong></p>
-        </div>
+    <div class="card">
+        <h2>User Profile Summary</h2>
+        <p><strong>Full Name:</strong> <?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></p>
+        <p><strong>Email:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
+        <p><strong>Phone:</strong> <?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?></p>
+        <p><strong>Address:</strong> <?php echo htmlspecialchars($user['address'] ?? 'N/A'); ?></p>
+        <p><strong>Account Created:</strong> <?php echo $user['created_at']; ?></p>
+        <a href="profile.php" class="btn">Edit Profile</a>
     </div>
 
-    <div class="dashboard-summary">
-        <div class="overview dashboard-account-summary">
-            <h3>Account Summary</h3>
-            <div class="grid-dashboard-summary">
-                <p><strong>Member ID:</strong> <span class="highlight"><?= $display_id ?></span></p>
-                <p><strong>Full Name:</strong> <span><?= htmlspecialchars($user['full_name']) ?></span></p>
-                <p><strong>Email:</strong> <span><?= htmlspecialchars($user['email']) ?></span></p>
-                <p><strong>Phone:</strong> <span><?= htmlspecialchars($user['phone']) ?></span></p>
-                <p><strong>Member Since:</strong> <span><?= $member_since ?></span></p>
-                <p><strong>Account Status:</strong> <span style="color:green;font-weight:bold;">Active</span></p>
-            </div>
-        </div>
-
-        <div class="overview recent-activities-account-summary">
-            <h3>Recent Activities</h3>
-            <?php if ($activities->num_rows > 0): ?>
-                <ul style="margin:15px 0; line-height:1.9; color:#444;">
-                    <?php while ($act = $activities->fetch_assoc()): ?>
-                        <li>
-                            <strong><?= htmlspecialchars($act['title']) ?></strong><br>
-                            <small><?= htmlspecialchars($act['description']) ?> — 
-                                <?= date("M d, Y \a\\t g:i A", strtotime($act['created_at'])) ?>
-                            </small>
-                        </li>
-                    <?php endwhile; ?>
-                </ul>
-            <?php else: ?>
-                <p style="color:#666; font-style:italic;">No recent activity.</p>
-            <?php endif; ?>
-        </div>
+    <div class="card">
+        <h2>Financial Overview</h2>
+        <p><strong>Total Outstanding Balance:</strong> GH₵ <?php echo number_format($total_outstanding, 2); ?></p>
+        <p><strong>Active Loans:</strong> <?php echo count(array_filter($loans, fn($l) => $l['status'] === 'active')); ?></p>
+        <p><strong>Pending Loans:</strong> <?php echo count(array_filter($loans, fn($l) => $l['status'] === 'pending')); ?></p>
     </div>
 
-    <a href="apply_loan.php" class="dashboard-btn">Apply for a New Loan</a>
+    <div class="card">
+        <h2>Recent Loans</h2>
+        <?php if (empty($loans)): ?>
+            <p>No loans found. <a href="apply_loan.php">Apply for a loan now</a>.</p>
+        <?php else: ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Amount</th>
+                        <th>Interest Rate</th>
+                        <th>Term (Months)</th>
+                        <th>Status</th>
+                        <th>Applied On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($loans as $loan): ?>
+                        <tr>
+                            <td><?php echo $loan['id']; ?></td>
+                            <td>GH₵ <?php echo number_format($loan['amount'], 2); ?></td>
+                            <td><?php echo $loan['interest_rate']; ?>%</td>
+                            <td><?php echo $loan['term']; ?></td>
+                            <td><?php echo ucfirst($loan['status']); ?></td>
+                            <td><?php echo $loan['applied_at']; ?></td>
+                            <td><a href="loan_details.php?id=<?php echo $loan['id']; ?>" class="btn">View</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+        <a href="my_loans.php" class="btn">View All Loans</a>
+    </div>
+
+    <div class="card">
+        <h2>Recent Payments</h2>
+        <?php if (empty($payments)): ?>
+            <p>No payments found.</p>
+        <?php else: ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Loan ID</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Paid On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($payments as $payment): ?>
+                        <tr>
+                            <td><?php echo $payment['id']; ?></td>
+                            <td><?php echo $payment['loan_id']; ?></td>
+                            <td>GH₵ <?php echo number_format($payment['amount'], 2); ?></td>
+                            <td><?php echo ucfirst(str_replace('_', ' ', $payment['payment_method'])); ?></td>
+                            <td><?php echo $payment['paid_at']; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+        <a href="payments.php" class="btn">View All Payments</a>
+    </div>
+
+    <div class="card">
+        <h2>Notifications</h2>
+        <?php if (empty($notifications)): ?>
+            <p>No new notifications.</p>
+        <?php else: ?>
+            <?php foreach ($notifications as $notif): ?>
+                <div class="notification">
+                    <p><strong><?php echo ucfirst($notif['type']); ?>:</strong> <?php echo htmlspecialchars($notif['message']); ?></p>
+                    <small><?php echo $notif['created_at']; ?></small>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        <a href="notifications.php" class="btn">View All Notifications</a>
+    </div>
 </div>
 
-<?php 
-$activities->free_result ?? null;
-include './includes/member_footer.php'; 
-?>
+<?php include 'includes/footer.php'; ?>
