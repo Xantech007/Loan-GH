@@ -18,6 +18,5 @@ $full_name = $user['full_name'] ?? 'User';
     <div class="logo">CedisPay</div>
     <div class="user-info">
         <span>Welcome, <?php echo htmlspecialchars($full_name); ?></span>
-        <a href="logout.php" class="btn">Logout</a>
     </div>
 </div>
