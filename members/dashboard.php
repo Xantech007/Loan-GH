@@ -2,7 +2,7 @@
 // members/dashboard.php
 
 // 1. Show errors while developing
-require_once '../config/error_reporting.php';
+require_once '../config/db.php';
 
 // 2. Start session
 session_start();
