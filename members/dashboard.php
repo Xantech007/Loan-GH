@@ -1,143 +1,171 @@
 <?php
-include 'includes/header.php';
-include 'includes/sidebar.php';
-include 'includes/navbar.php';
-include '../config/db.php'; // Connection file (adjust path if needed)
+// members/dashboard.php
+
+// 1. Show errors while developing
+require_once '../config/error_reporting.php';
+
+// 2. Start session
+session_start();
+
+// 3. Check if user is logged in
+if (!!! THIS WAS MISSING !!!)
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+// 4. Include DB connection (correct relative path from members/ folder)
+require_once '../config/db.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch user details
-$stmt_user = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt_user->execute([$user_id]);
-$user = $stmt_user->fetch();
+try {
+    // === Fetch User ===
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch();
 
-// Fetch loans
-$stmt_loans = $pdo->prepare("SELECT * FROM loans WHERE user_id = ? ORDER BY applied_at DESC LIMIT 5");
-$stmt_loans->execute([$user_id]);
-$loans = $stmt_loans->fetchAll();
-
-// Fetch recent payments
-$stmt_payments = $pdo->prepare("SELECT p.*, l.amount AS loan_amount FROM payments p JOIN loans l ON p.loan_id = l.id WHERE l.user_id = ? ORDER BY p.paid_at DESC LIMIT 5");
-$stmt_payments->execute([$user_id]);
-$payments = $stmt_payments->fetchAll();
-
-// Fetch notifications
-$stmt_notifs = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT 5");
-$stmt_notifs->execute([$user_id]);
-$notifications = $stmt_notifs->fetchAll();
-
-// Calculate total outstanding balance (example calculation)
-$total_outstanding = 0;
-foreach ($loans as $loan) {
-    if (in_array($loan['status'], ['approved', 'active'])) {
-        $total_outstanding += $loan['amount'] * (1 + $loan['interest_rate']/100);
+    if (!$user) {
+        session_destroy();
+        header("Location: ../login.php");
+        exit();
     }
+
+    // === Fetch Recent Loans ===
+    $stmt = $pdo->prepare("SELECT * FROM loans WHERE user_id = ? ORDER BY applied_at DESC LIMIT 5");
+    $stmt->execute([$user_id]);
+    $loans = $stmt->fetchAll();
+
+    // === Fetch Recent Payments ===
+    $stmt = $pdo->prepare("
+        SELECT p.*, l.amount AS loan_amount 
+        FROM payments p 
+        JOIN loans l ON p.loan_id = l.id 
+        WHERE l.user_id = ? 
+        ORDER BY p.paid_at DESC LIMIT 5
+    ");
+    $stmt->execute([$user_id]);
+    $payments = $stmt->fetchAll();
+
+    // === Fetch Unread Notifications ===
+    $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC LIMIT 10");
+    $stmt->execute([$user_id]);
+    $notifications = $stmt->fetchAll();
+
+    // === Calculate Outstanding Balance ===
+    $stmt = $pdo->prepare("SELECT SUM(amount * (1 + interest_rate/100)) as total FROM loans WHERE user_id = ? AND status IN ('approved', 'active')");
+    $stmt->execute([$user_id]);
+    $outstanding = $stmt->fetch()['total'] ?? 0;
+
+} catch (Exception $e) {
+    die("Error loading dashboard: " . $e->getMessage());
 }
 ?>
 
-<div class="main-content">
-    <div class="card">
-        <h2>Welcome to Your CedisPay Dashboard</h2>
-        <p>Here you can manage your loans, view payments, and stay updated with notifications.</p>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CedisPay</title>
+    <style>
+        :root {
+            --primary: #001f3f;
+            --light: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', sans-serif; margin:0; background:#f4f6f9; }
+        .container { display:flex; min-height:100vh; }
+        .sidebar { width:260px; background:var(--primary); color:white; padding:20px 0; }
+        .sidebar h2 { padding:0 20px; margin-bottom:30px; }
+        .sidebar a { display:block; color:white; padding:12px 20px; text-decoration:none; }
+        .sidebar a:hover, .sidebar a.active { background:rgba(255,255,255,0.1); }
+        .main { flex:1; padding:20px; }
+        .navbar { background:var(--primary); color:white; padding:15px 30px; display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; border-radius:8px; }
+        .card { background:white; border-radius:8px; padding:25px; margin-bottom:25px; box-shadow:0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { color:var(--primary); margin-top:0; border-bottom:2px solid var(--primary); padding-bottom:10px; }
+        table { width:100%; border-collapse:collapse; margin-top:15px; }
+        table th, table td { padding:12px; text-align:left; border-bottom:1px solid #eee; }
+        table th { background:var(--primary); color:white; }
+        .btn { background:var(--primary); color:white; padding:8px 16px; border-radius:4px; text-decoration:none; font-size:14px; }
+        .btn:hover { background:#003366; }
+        .notification { background:#e3a86ff; color:white; padding:15px; border-radius:6px; margin-bottom:10px; }
+        .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px; margin-bottom:30px; }
+        .stat-card { background:white; padding:20px; border-radius:8px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+        .stat-card h3 { margin:0; font-size:2em; color:var(--primary); }
+    </style>
+</head>
+<body>
 
-    <div class="card">
-        <h2>User Profile Summary</h2>
-        <p><strong>Full Name:</strong> <?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></p>
-        <p><strong>Email:</strong> <?php echo htmlspecialchars($user['email']); ?></p>
-        <p><strong>Phone:</strong> <?php echo htmlspecialchars($user['phone'] ?? 'N/A'); ?></p>
-        <p><strong>Address:</strong> <?php echo htmlspecialchars($user['address'] ?? 'N/A'); ?></p>
-        <p><strong>Account Created:</strong> <?php echo $user['created_at']; ?></p>
-        <a href="profile.php" class="btn">Edit Profile</a>
-    </div>
+<div class="container">
+    <?php include 'includes/sidebar.php'; ?>
 
-    <div class="card">
-        <h2>Financial Overview</h2>
-        <p><strong>Total Outstanding Balance:</strong> GH₵ <?php echo number_format($total_outstanding, 2); ?></p>
-        <p><strong>Active Loans:</strong> <?php echo count(array_filter($loans, fn($l) => $l['status'] === 'active')); ?></p>
-        <p><strong>Pending Loans:</strong> <?php echo count(array_filter($loans, fn($l) => $l['status'] === 'pending')); ?></p>
-    </div>
+    <div class="main">
+        <?php include 'includes/navbar.php'; ?>
 
-    <div class="card">
-        <h2>Recent Loans</h2>
-        <?php if (empty($loans)): ?>
-            <p>No loans found. <a href="apply_loan.php">Apply for a loan now</a>.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Amount</th>
-                        <th>Interest Rate</th>
-                        <th>Term (Months)</th>
-                        <th>Status</th>
-                        <th>Applied On</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($loans as $loan): ?>
-                        <tr>
-                            <td><?php echo $loan['id']; ?></td>
-                            <td>GH₵ <?php echo number_format($loan['amount'], 2); ?></td>
-                            <td><?php echo $loan['interest_rate']; ?>%</td>
-                            <td><?php echo $loan['term']; ?></td>
-                            <td><?php echo ucfirst($loan['status']); ?></td>
-                            <td><?php echo $loan['applied_at']; ?></td>
-                            <td><a href="loan_details.php?id=<?php echo $loan['id']; ?>" class="btn">View</a></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-        <a href="my_loans.php" class="btn">View All Loans</a>
-    </div>
+        <!-- Quick Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>GH₵ <?php echo number_format($outstanding, 2); ?></h3>
+                <p>Outstanding Balance</p>
+            </div>
+            <div class="stat-card">
+                <h3><?php echo count(array_filter($loans, fn($l) => $l['status'] == 'active')); ?></h3>
+                <p>Active Loans</p>
+            </div>
+            <div class="stat-card">
+                <h3><?php echo count($payments); ?></h3>
+                <p>Payments Made</p>
+            </div>
+        </div>
 
-    <div class="card">
-        <h2>Recent Payments</h2>
-        <?php if (empty($payments)): ?>
-            <p>No payments found.</p>
-        <?php else: ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Loan ID</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Paid On</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($payments as $payment): ?>
-                        <tr>
-                            <td><?php echo $payment['id']; ?></td>
-                            <td><?php echo $payment['loan_id']; ?></td>
-                            <td>GH₵ <?php echo number_format($payment['amount'], 2); ?></td>
-                            <td><?php echo ucfirst(str_replace('_', ' ', $payment['payment_method'])); ?></td>
-                            <td><?php echo $payment['paid_at']; ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-        <a href="payments.php" class="btn">View All Payments</a>
-    </div>
+        <div class="card">
+            <h2>Welcome back, <?php echo htmlspecialchars($user['full_name'] ?? $user['username']); ?>!</h2>
+            <p>Manage your loans and repayments easily from your CedisPay dashboard.</p>
+        </div>
 
-    <div class="card">
-        <h2>Notifications</h2>
-        <?php if (empty($notifications)): ?>
-            <p>No new notifications.</p>
-        <?php else: ?>
-            <?php foreach ($notifications as $notif): ?>
+        <?php if (!empty($notifications)): ?>
+        <div class="card">
+            <h2>Notifications</h2>
+            <?php foreach ($notifications as $n): ?>
                 <div class="notification">
-                    <p><strong><?php echo ucfirst($notif['type']); ?>:</strong> <?php echo htmlspecialchars($notif['message']); ?></p>
-                    <small><?php echo $notif['created_at']; ?></small>
+                    <?php echo htmlspecialchars($n['message']); ?>
+                    <small style="float:right; opacity:0.9;"><?php echo date('M j, Y g:i A', strtotime($n['created_at'])); ?></small>
                 </div>
             <?php endforeach; ?>
+        </div>
         <?php endif; ?>
-        <a href="notifications.php" class="btn">View All Notifications</a>
+
+        <div class="card">
+            <h2>Recent Loans</h2>
+            <?php if (empty($loans)): ?>
+                <p>No loan applications yet. <a href="apply_loan.php" class="btn">Apply Now</a></p>
+            <?php else: ?>
+                <table>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Amount</th>
+                        <th>Term</th>
+                        <th>Status</th>
+                        <th>Applied</th>
+                        <th>Action</th>
+                    </tr>
+                    <?php foreach ($loans as $loan): ?>
+                    <tr>
+                        <td>#<?php echo $loan['id']; ?></td>
+                        <td>GH₵ <?php echo number_format($loan['amount'], 2); ?></td>
+                        <td><?php echo $loan['term']; ?> months</td>
+                        <td><strong><?php echo ucfirst($loan['status']); ?></strong></td>
+                        <td><?php echo date('M j, Y', strtotime($loan['applied_at'])); ?></td>
+                        <td><a href="loan_details.php?id=<?php echo $loan['id']; ?>" class="btn">View</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <?php include 'includes/footer.php'; ?>
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+</body>
+</html>
