@@ -246,14 +246,6 @@
             </a>
           </li> -->
 
-          <!-- <//?php if($is_admin): ?> -->
-          <li class="sidebar-item">
-            <a href="./document_management.php" class="sidebar-link">
-              <i class="fa-solid fa-folder-open"></i>
-              <span>Document Management</span>
-            </a>
-          </li>
-          <!-- <//?php endif; ?> -->
 
 
             <!-- <//?php if($is_admin): ?> -->
