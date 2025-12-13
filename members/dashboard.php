@@ -1,5 +1,5 @@
 <?php
-// members/dashboard.php - Fully Enhanced: Verification, Dynamic Limits, Editable Profile
+// members/dashboard.php - Updated with Link to Dedicated Verification Page
 
 session_start();
 require '../config/db.php';
@@ -13,10 +13,10 @@ $user_id = $_SESSION['user_id'];
 $message = '';
 
 try {
-    // Fetch user data including new fields
+    // Fetch user data
     $stmt = $pdo->prepare("
         SELECT username, email, full_name, phone, balance, is_verified, 
-               loan_min, loan_max 
+               loan_min, loan_max, created_at
         FROM users 
         WHERE id = ? 
         LIMIT 1
@@ -34,16 +34,6 @@ try {
     $loan_min = $user['loan_min'] ?? 500.00;
     $loan_max = $user['loan_max'] ?? ($user['is_verified'] ? 20000.00 : 5000.00);
 
-    // Handle Account Verification
-    if (isset($_POST['verify_account']) && $user['is_verified'] == 0) {
-        $update = $pdo->prepare("UPDATE users SET is_verified = 1, loan_max = 20000.00 WHERE id = ?");
-        if ($update->execute([$user_id])) {
-            $message .= '<div class="alert-success">Account verified successfully! Your loan limit has been increased to GHS 20,000.</div>';
-            $user['is_verified'] = 1;
-            $loan_max = 20000.00;
-        }
-    }
-
     // Handle Profile Update
     if (isset($_POST['update_profile'])) {
         $full_name = trim($_POST['full_name'] ?? '');
@@ -60,7 +50,7 @@ try {
         }
     }
 
-    // Handle Password Change (refetch password hash for verification)
+    // Handle Password Change
     if (isset($_POST['change_password'])) {
         $current = $_POST['current_password'] ?? '';
         $new = $_POST['new_password'] ?? '';
@@ -290,19 +280,20 @@ try {
             box-shadow: var(--shadow);
             margin-bottom: 30px;
         }
-        .verify-btn {
+        .verify-link-btn {
+            display: inline-block;
             background: var(--warning);
             color: white;
             padding: 16px 40px;
-            border: none;
             border-radius: 12px;
             font-size: 1.2rem;
             font-weight: 600;
-            cursor: pointer;
+            text-decoration: none;
             margin-top: 20px;
             box-shadow: var(--shadow);
+            transition: var(--transition);
         }
-        .verify-btn:hover {
+        .verify-link-btn:hover {
             background: #e67e22;
             transform: translateY(-3px);
         }
@@ -429,14 +420,15 @@ try {
 
                 <?php if ($user['is_verified'] == 0): ?>
                     <div class="verify-card">
-                        <i class="fas fa-exclamation-triangle" style="font-size:4rem; color:#856404; margin-bottom:20px;"></i>
-                        <h3 style="color:#856404; margin-bottom:15px;">Account Verification Required</h3>
-                        <p style="font-size:1.1rem; margin-bottom:20px;">You must verify your account before you can apply for loans.</p>
-                        <form method="POST">
-                            <button type="submit" name="verify_account" class="verify-btn">
-                                <i class="fas fa-check-circle"></i> Verify My Account Now
-                            </button>
-                        </form>
+                        <i class="fas fa-shield-alt" style="font-size:4rem; color:#856404; margin-bottom:20px;"></i>
+                        <h3 style="color:#856404; margin-bottom:15px;">Verify Your Account First</h3>
+                        <p style="font-size:1.1rem; margin-bottom:20px;">
+                            To apply for loans and unlock higher limits (up to GHS 20,000), 
+                            please complete the account verification process.
+                        </p>
+                        <a href="verify-account.php" class="verify-link-btn">
+                            <i class="fas fa-check-circle"></i> Complete Verification
+                        </a>
                     </div>
                 <?php else: ?>
                     <table class="limits-table">
