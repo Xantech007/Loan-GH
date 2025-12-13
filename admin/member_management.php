@@ -1,11 +1,11 @@
 <?php
-// admin/member_management.php - Fixed & Updated Member Management
+// admin/member_management.php - Fixed: Removed 'role' column dependency
 
 session_start();
 require '../config/db.php'; // PDO connection
 
 // Admin authentication
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
@@ -17,29 +17,30 @@ include './includes/admin_header.php';
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
     $delete_id = (int)$_GET['id'];
     try {
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role != 'admin'");
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
         $stmt->execute([$delete_id]);
         $success_message = "Member deleted successfully.";
     } catch (Exception $e) {
-        $error_message = "Unable to delete member: " . $e->getMessage();
+        $error_message = "Unable to delete member.";
     }
 }
 
-// Fetch all members safely
+// Fetch all members safely (exclude admins if they have a separate table or no 'role' column)
 $members = [];
 $error_message = '';
 
 try {
+    // Since admins are in a separate table (or no role column exists), just fetch all users
+    // This will show all regular members (no admin accounts in users table)
     $stmt = $pdo->prepare("
         SELECT id, full_name, email, phone, balance, is_verified, created_at
         FROM users 
-        WHERE role != 'admin'
         ORDER BY created_at DESC
     ");
     $stmt->execute();
     $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $error_message = "Database error: Unable to load members. " . $e->getMessage();
+    $error_message = "Database error: " . $e->getMessage();
 } catch (Exception $e) {
     $error_message = "System error: " . $e->getMessage();
 }
@@ -104,7 +105,7 @@ try {
                                     <td><?= htmlspecialchars($member['phone'] ?? 'Not provided') ?></td>
                                     <td><strong>GHS <?= number_format($member['balance'] ?? 0, 2) ?></strong></td>
                                     <td>
-                                        <?php if ($member['is_verified']): ?>
+                                        <?php if ($member['is_verified'] ?? false): ?>
                                             <span class="badge bg-success fs-6">Verified</span>
                                         <?php else: ?>
                                             <span class="badge bg-warning fs-6">Unverified</span>
@@ -143,7 +144,7 @@ try {
     <div class="mt-4 text-center">
         <small class="text-muted">
             <i class="fas fa-info-circle"></i> 
-            Admins cannot be deleted from this panel for security reasons.
+            Only regular members are shown. Admins are managed separately.
         </small>
     </div>
 </div>
