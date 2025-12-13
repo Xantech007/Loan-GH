@@ -1,5 +1,5 @@
 <?php
-// members/dashboard.php - Updated with Link to Dedicated Verification Page
+// members/dashboard.php - Updated Verification Status: 0 = Not Verified, 1 = Pending, 2 = Verified
 
 session_start();
 require '../config/db.php';
@@ -15,10 +15,10 @@ $message = '';
 try {
     // Fetch user data
     $stmt = $pdo->prepare("
-        SELECT username, email, full_name, phone, balance, is_verified, 
+        SELECT username, email, full_name, phone, balance, is_verified,
                loan_min, loan_max, created_at
-        FROM users 
-        WHERE id = ? 
+        FROM users
+        WHERE id = ?
         LIMIT 1
     ");
     $stmt->execute([$user_id]);
@@ -30,9 +30,20 @@ try {
         exit();
     }
 
-    // Dynamic loan limits
+    // Verification status mapping
+    $verification_status = match ((int)$user['is_verified']) {
+        0 => ['label' => 'Not Verified', 'badge' => 'bg-danger', 'icon' => 'fa-times-circle'],
+        1 => ['label' => 'Pending Verification', 'badge' => 'bg-warning', 'icon' => 'fa-clock'],
+        2 => ['label' => 'Verified', 'badge' => 'bg-success', 'icon' => 'fa-check-circle'],
+        default => ['label' => 'Unknown', 'badge' => 'bg-secondary', 'icon' => 'fa-question-circle']
+    };
+
+    // Loan access: Only fully verified (2) users can apply
+    $can_apply_loan = ($user['is_verified'] == 2);
+
+    // Dynamic loan limits - Full limit only when verified (2)
     $loan_min = $user['loan_min'] ?? 500.00;
-    $loan_max = $user['loan_max'] ?? ($user['is_verified'] ? 20000.00 : 5000.00);
+    $loan_max = $user['loan_max'] ?? ($user['is_verified'] == 2 ? 20000.00 : 5000.00);
 
     // Handle Profile Update
     if (isset($_POST['update_profile'])) {
@@ -79,16 +90,16 @@ try {
 
     // Fetch loans
     $stmt_loans = $pdo->prepare("
-        SELECT *, 
-               CASE 
+        SELECT *,
+               CASE
                    WHEN status = 'pending' THEN 1
                    WHEN status = 'approved' THEN 2
                    WHEN status = 'rejected' THEN 3
                    WHEN status = 'paid' THEN 4
-                   ELSE 5 
+                   ELSE 5
                END as status_order
-        FROM loans 
-        WHERE user_id = ? 
+        FROM loans
+        WHERE user_id = ?
         ORDER BY status_order, created_at DESC
     ");
     $stmt_loans->execute([$user_id]);
@@ -187,7 +198,6 @@ try {
         .section { display: none; animation: fadeIn 0.6s ease; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -209,7 +219,6 @@ try {
         .card.approved i { color: var(--success); }
         .card h3 { font-size: 1.1rem; margin-bottom: 10px; color: #555; }
         .card p { font-size: 2.2rem; font-weight: 700; color: var(--dark); }
-
         .loan-form {
             background: white;
             border-radius: 16px;
@@ -247,7 +256,6 @@ try {
             box-shadow: 0 8px 25px rgba(0,31,63,0.3);
         }
         .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,31,63,0.4); }
-
         .limits-table {
             width: 100%;
             margin: 30px 0;
@@ -271,7 +279,6 @@ try {
             font-weight: 700;
             color: var(--primary);
         }
-
         .verify-card {
             background: #fff3cd;
             border-radius: 16px;
@@ -297,7 +304,15 @@ try {
             background: #e67e22;
             transform: translateY(-3px);
         }
-
+        .pending-card {
+            background: #fffbe6;
+            border-left: 5px solid var(--warning);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
         .table-container {
             background: white;
             border-radius: 16px;
@@ -313,7 +328,6 @@ try {
         .status.approved { background: #d4edda; color: #155724; }
         .status.rejected { background: #f8d7da; color: #721c24; }
         .status.paid { background: #d1ecf1; color: #0c5460; }
-
         .profile-card {
             background: white;
             border-radius: 16px;
@@ -342,7 +356,6 @@ try {
             color: #555;
         }
         .profile-info strong { color: var(--primary); }
-
         .alert-success, .alert-error {
             padding: 15px;
             border-radius: 12px;
@@ -352,13 +365,11 @@ try {
         }
         .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
         .edit-form h3 {
             color: var(--primary);
             margin: 40px 0 20px;
             text-align: left;
         }
-
         @media (max-width: 768px) {
             header h1 { font-size: 2.2rem; }
             .nav-tabs button { padding: 12px 20px; font-size: 0.95rem; min-width: 120px; }
@@ -370,7 +381,6 @@ try {
     </style>
 </head>
 <body>
-
     <header>
         <h1>CedisPay</h1>
         <p>Hello, <?= htmlspecialchars($user['full_name'] ?? $user['username']) ?>! Welcome back</p>
@@ -418,18 +428,30 @@ try {
             <div class="loan-form">
                 <h2 style="text-align:center; margin-bottom:30px; color:var(--primary);">Apply for a New Loan</h2>
 
-                <?php if ($user['is_verified'] == 0): ?>
-                    <div class="verify-card">
-                        <i class="fas fa-shield-alt" style="font-size:4rem; color:#856404; margin-bottom:20px;"></i>
-                        <h3 style="color:#856404; margin-bottom:15px;">Verify Your Account First</h3>
-                        <p style="font-size:1.1rem; margin-bottom:20px;">
-                            To apply for loans and unlock higher limits (up to GHS 20,000), 
-                            please complete the account verification process.
-                        </p>
-                        <a href="verify-account.php" class="verify-link-btn">
-                            <i class="fas fa-check-circle"></i> Complete Verification
-                        </a>
-                    </div>
+                <?php if (!$can_apply_loan): ?>
+                    <?php if ($user['is_verified'] == 0): ?>
+                        <div class="verify-card">
+                            <i class="fas fa-shield-alt" style="font-size:4rem; color:#856404; margin-bottom:20px;"></i>
+                            <h3 style="color:#856404; margin-bottom:15px;">Account Verification Required</h3>
+                            <p style="font-size:1.1rem; margin-bottom:20px;">
+                                To apply for loans and unlock higher limits (up to GHS 20,000),
+                                you must complete the verification process.
+                            </p>
+                            <a href="verify-account.php" class="verify-link-btn">
+                                <i class="fas fa-check-circle"></i> Start Verification
+                            </a>
+                        </div>
+                    <?php elseif ($user['is_verified'] == 1): ?>
+                        <div class="pending-card">
+                            <i class="fas fa-clock" style="font-size:4rem; color:#f39c12; margin-bottom:20px;"></i>
+                            <h3 style="color:#f39c12; margin-bottom:15px;">Verification Pending</h3>
+                            <p style="font-size:1.1rem; margin-bottom:20px;">
+                                Your verification documents are under review.<br>
+                                You will be notified once approved. This usually takes 24-48 hours.
+                            </p>
+                            <p class="text-muted"><small>Current max limit: GHS 5,000</small></p>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <table class="limits-table">
                         <thead>
@@ -481,7 +503,9 @@ try {
             <?php if (empty($loans)): ?>
                 <div class="card" style="text-align:center; padding:50px;">
                     <i class="fas fa-inbox" style="font-size:4rem; color:#ccc; margin-bottom:20px;"></i>
-                    <p>No loan applications yet. <?= $user['is_verified'] ? 'Apply for your first loan today!' : 'Verify your account to get started.' ?></p>
+                    <p>No loan applications yet. 
+                        <?= $can_apply_loan ? 'Apply for your first loan today!' : 'Complete verification to get started.' ?>
+                    </p>
                 </div>
             <?php else: ?>
                 <div class="table-container">
@@ -521,15 +545,11 @@ try {
                 </div>
                 <h2 style="color:var(--primary); margin-bottom:20px;"><?= htmlspecialchars($user['full_name'] ?? $user['username']) ?></h2>
 
-                <?php if ($user['is_verified'] == 1): ?>
-                    <p style="background:#d4edda; color:#155724; padding:12px 20px; border-radius:50px; display:inline-block; font-weight:600;">
-                        <i class="fas fa-check-circle"></i> Verified Account
-                    </p>
-                <?php else: ?>
-                    <p style="background:#fff3cd; color:#856404; padding:12px 20px; border-radius:50px; display:inline-block; font-weight:600;">
-                        <i class="fas fa-exclamation-triangle"></i> Unverified Account
-                    </p>
-                <?php endif; ?>
+                <p style="background:<?= $verification_status['badge'] === 'bg-success' ? '#d4edda' : ($verification_status['badge'] === 'bg-warning' ? '#fffbe6' : '#f8d7da') ?>; 
+                         color:<?= $verification_status['badge'] === 'bg-success' ? '#155724' : ($verification_status['badge'] === 'bg-warning' ? '#856404' : '#721c24') ?>; 
+                         padding:12px 20px; border-radius:50px; display:inline-block; font-weight:600;">
+                    <i class="fas <?= $verification_status['icon'] ?>"></i> <?= $verification_status['label'] ?>
+                </p>
 
                 <div class="profile-info">
                     <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
@@ -593,6 +613,5 @@ try {
             }
         }
     </script>
-
 </body>
 </html>
