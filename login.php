@@ -1,34 +1,26 @@
 <?php
-// login.php - Updated for CedisPay (uses 'users' table + redirects to members/dashboard.php)
+// login.php - CedisPay Login (CSRF token removed for simplicity)
 session_start();
-require 'config/db.php'; // Adjust path if login.php is in a subfolder
+require 'config/db.php'; // Adjust path if needed
 
 $error = "";
 
-// Generate CSRF token if not exists
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verify CSRF token
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
-        $error = "Invalid request. Please try again.";
+    $login_input = trim($_POST['login_input'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (empty($login_input) || empty($password)) {
+        $error = "Please enter your login details.";
     } else {
-        $login_input = trim($_POST['login_input'] ?? '');
-        $password    = $_POST['password'] ?? '';
+        // Allow login with username, email, or phone
+        $sql = "SELECT id, username, full_name, email, phone, password
+                FROM users
+                WHERE username = ?
+                   OR email = ?
+                   OR phone = ?
+                LIMIT 1";
 
-        if (empty($login_input) || empty($password)) {
-            $error = "Please enter your login details.";
-        } else {
-            // Allow login with: username, email, or phone
-            $sql = "SELECT id, username, full_name, email, phone, password 
-                    FROM users 
-                    WHERE username = ? 
-                       OR email = ? 
-                       OR phone = ? 
-                    LIMIT 1";
-
+        try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$login_input, $login_input, $login_input]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -36,24 +28,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user && password_verify($password, $user['password'])) {
                 // Login successful
                 session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'] ?? 'Member';
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['logged_in'] = true;
 
-                $_SESSION['user_id']    = $user['id'];
-                $_SESSION['username']   = $user['username'];
-                $_SESSION['full_name']  = $user['full_name'] ?? 'Member';
-                $_SESSION['email']      = $user['email'];
-                $_SESSION['logged_in']  = true;
-
-                // Redirect to dashboard inside members folder
                 header("Location: members/dashboard.php");
                 exit();
             } else {
                 $error = "Invalid username, email, phone, or password.";
             }
+        } catch (Exception $e) {
+            $error = "Login error. Please try again later.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -230,7 +221,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-
 <div class="main-container">
     <!-- Left Side - Branding -->
     <div class="col-left">
@@ -238,41 +228,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Welcome Back!</h1>
         <p>Access your loan dashboard and manage your finances with ease.</p>
     </div>
-
     <!-- Right Side - Login Form -->
     <div class="container">
         <div class="logo">
             <img src="assets/profile_3135715.png" alt="CedisPay Icon">
         </div>
         <h2>Member Login</h2>
-
         <?php if ($error): ?>
             <div class="alert"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
-
         <form method="POST">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-
             <div class="form-group">
                 <input type="text" name="login_input" required>
                 <label>Username, Email or Phone</label>
             </div>
-
             <div class="form-group">
                 <input type="password" name="password" required>
                 <label>Password</label>
             </div>
-
             <a href="forgot-password.php" class="forgot-password">Forgot Password?</a>
-
             <button type="submit">Log In Securely</button>
         </form>
-
         <div class="dont-have">
             New to CedisPay? <a href="register.php">Apply for Membership</a>
         </div>
     </div>
 </div>
-
 </body>
 </html>
