@@ -1,5 +1,5 @@
 <?php
-// admin/loan_management.php - Modern CedisPay Admin Loan Management
+// admin/loan_management.php - Updated CedisPay Admin Loan Management (Matches current tables)
 
 session_start();
 require '../config/db.php'; // Using PDO for consistency
@@ -14,7 +14,6 @@ $pageTitle = "Loan Management";
 include './includes/admin_header.php';
 
 // Handle Approve / Reject Actions
-$message = '';
 if (isset($_GET['action']) && isset($_GET['id'])) {
     $action = $_GET['action'];
     $loan_id = (int)$_GET['id'];
@@ -23,42 +22,31 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
         $new_status = $action === 'approve' ? 'approved' : 'rejected';
 
         try {
-            $update = $pdo->prepare("UPDATE loans SET status = ? WHERE id = ?");
-            if ($update->execute([$new_status, $loan_id])) {
-                $message = '<div class="alert alert-success">Loan application has been <strong>' . ucfirst($new_status) . '</strong>.</div>';
-            } else {
-                $message = '<div class="alert alert-danger">Failed to update loan status.</div>';
-            }
+            $stmt = $pdo->prepare("UPDATE loans SET status = ? WHERE id = ?");
+            $stmt->execute([$new_status, $loan_id]);
+
+            // Optional: Add notification or log here in future
+            $success_message = "Loan application has been " . ucfirst($new_status) . " successfully.";
         } catch (Exception $e) {
-            $message = '<div class="alert alert-danger">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            $error_message = "Error updating loan status. Please try again.";
         }
     }
 }
 
-// Filter by status
-$status_filter = $_GET['status'] ?? 'all';
-$where = '';
-$params = [];
-if ($status_filter !== 'all') {
-    $where = "WHERE l.status = ?";
-    $params[] = $status_filter;
-}
-
 // Fetch all loan applications with user details
 try {
-    $sql = "
+    $stmt = $pdo->prepare("
         SELECT l.id, l.amount, l.term, l.purpose, l.status, l.created_at,
-               u.full_name, u.email, u.phone
+               u.full_name, u.email, u.phone, u.is_verified
         FROM loans l
         JOIN users u ON l.user_id = u.id
-        $where
         ORDER BY l.created_at DESC
-    ";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    ");
+    $stmt->execute();
     $loans = $stmt->fetchAll();
 } catch (Exception $e) {
-    die("Database error: " . $e->getMessage());
+    $error_message = "Unable to load loan applications.";
+    $loans = [];
 }
 ?>
 
@@ -66,67 +54,78 @@ try {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-primary"><i class="fas fa-money-check-alt"></i> Loan Management</h2>
         <div>
-            <select class="form-select d-inline-block w-auto" onchange="if(this.value) window.location.href='?status='+this.value">
-                <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All Applications</option>
-                <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending</option>
-                <option value="approved" <?= $status_filter === 'approved' ? 'selected' : '' ?>>Approved</option>
-                <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                <option value="paid" <?= $status_filter === 'paid' ? 'selected' : '' ?>>Paid</option>
-            </select>
+            <span class="badge bg-info fs-6"><?= count($loans) ?> Total Applications</span>
         </div>
     </div>
 
-    <p class="lead text-muted">Review, approve, or reject loan applications from members.</p>
+    <p class="lead text-muted">Review, approve, or reject loan applications from members. Only verified members can apply.</p>
 
-    <?= $message ?>
+    <?php if (isset($success_message)): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <?= htmlspecialchars($success_message) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($error_message)): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($error_message) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
     <div class="card shadow-lg">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-list-ul"></i> Loan Applications (<?= count($loans) ?>)</h5>
+            <h5 class="mb-0"><i class="fas fa-list"></i> All Loan Applications</h5>
         </div>
         <div class="card-body p-0">
-            <?php if (count($loans) > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>#</th>
-                                <th>Applicant</th>
-                                <th>Email / Phone</th>
-                                <th>Amount</th>
-                                <th>Term</th>
-                                <th>Purpose</th>
-                                <th>Applied On</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Applicant</th>
+                            <th>Contact</th>
+                            <th>Amount</th>
+                            <th>Term</th>
+                            <th>Purpose</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (count($loans) > 0): ?>
                             <?php foreach ($loans as $index => $loan): ?>
                                 <tr>
-                                    <td><strong>#<?= str_pad($loan['id'], 5, '0', STR_PAD_LEFT) ?></strong></td>
+                                    <td><strong>#<?= str_pad($loan['id'], 4, '0', STR_PAD_LEFT) ?></strong></td>
                                     <td>
-                                        <strong><?= htmlspecialchars($loan['full_name']) ?></strong>
+                                        <div>
+                                            <strong><?= htmlspecialchars($loan['full_name']) ?></strong><br>
+                                            <small class="text-muted"><?= htmlspecialchars($loan['email']) ?></small>
+                                            <?php if ($loan['is_verified']): ?>
+                                                <span class="badge bg-success ms-2">Verified</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning ms-2">Unverified</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <?= htmlspecialchars($loan['email']) ?><br>
-                                        <small class="text-muted"><?= htmlspecialchars($loan['phone'] ?? 'N/A') ?></small>
-                                    </td>
+                                    <td><?= htmlspecialchars($loan['phone'] ?? 'N/A') ?></td>
                                     <td><strong>GHS <?= number_format($loan['amount'], 2) ?></strong></td>
                                     <td><?= $loan['term'] ?> months</td>
                                     <td><?= ucfirst($loan['purpose']) ?></td>
-                                    <td><?= date('M d, Y', strtotime($loan['created_at'])) ?></td>
                                     <td>
                                         <?php
-                                        $badgeClass = match($loan['status']) {
+                                        $status_class = match($loan['status']) {
                                             'approved' => 'bg-success',
                                             'rejected' => 'bg-danger',
                                             'paid' => 'bg-info',
                                             default => 'bg-warning'
                                         };
                                         ?>
-                                        <span class="badge <?= $badgeClass ?> fs-6"><?= ucfirst($loan['status']) ?></span>
+                                        <span class="badge <?= $status_class ?> fs-6"><?= ucfirst($loan['status']) ?></span>
                                     </td>
+                                    <td><?= date('M d, Y', strtotime($loan['created_at'])) ?></td>
                                     <td>
                                         <?php if ($loan['status'] === 'pending'): ?>
                                             <a href="?action=approve&id=<?= $loan['id'] ?>" 
@@ -145,56 +144,24 @@ try {
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
-                    <p class="text-muted">No loan applications found matching the selected filter.</p>
-                </div>
-            <?php endif; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i><br>
+                                    No loan applications found.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Stats Summary -->
-    <div class="row mt-5 g-4">
-        <div class="col-md-3">
-            <div class="card text-center shadow-sm border-primary">
-                <div class="card-body">
-                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
-                    <h5>Pending</h5>
-                    <h3><?= $pdo->query("SELECT COUNT(*) FROM loans WHERE status = 'pending'")->fetchColumn() ?></h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center shadow-sm border-success">
-                <div class="card-body">
-                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
-                    <h5>Approved</h5>
-                    <h3><?= $pdo->query("SELECT COUNT(*) FROM loans WHERE status = 'approved'")->fetchColumn() ?></h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center shadow-sm border-danger">
-                <div class="card-body">
-                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
-                    <h5>Rejected</h5>
-                    <h3><?= $pdo->query("SELECT COUNT(*) FROM loans WHERE status = 'rejected'")->fetchColumn() ?></h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center shadow-sm border-info">
-                <div class="card-body">
-                    <i class="fas fa-coins fa-2x text-info mb-2"></i>
-                    <h5>Total Approved Amount</h5>
-                    <h4>GHS <?= number_format($pdo->query("SELECT COALESCE(SUM(amount),0) FROM loans WHERE status='approved'")->fetchColumn(), 2) ?></h4>
-                </div>
-            </div>
-        </div>
+    <div class="mt-4 text-center">
+        <a href="dashboard.php" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 </div>
 
