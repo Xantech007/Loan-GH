@@ -6,19 +6,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Query admin table instead of users
+    // Query admin table
     $stmt = $conn->prepare("SELECT * FROM admin WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
     $admin = $result->fetch_assoc();
 
-    // Plain-text password check (matches your current setup)
+    // Plain-text password check (same logic you were using)
     if ($admin && $password === $admin['password']) {
 
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['admin_username'] = $admin['username'];
-        $_SESSION['admin_role'] = 'admin';
+        // ✅ SESSION VARIABLES THAT MATCH THE DASHBOARD
+        $_SESSION['username'] = $admin['username'];
+        $_SESSION['role'] = 'admin';
 
         session_regenerate_id(true); // Prevent session fixation
 
