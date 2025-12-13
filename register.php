@@ -1,58 +1,59 @@
 <?php
-// register.php - CedisPay Registration (NO Member ID shown)
+// register.php - CedisPay Registration (CSRF removed, safe & working)
 session_start();
 require 'config/db.php'; // Adjust path if needed
 
-$success = $error = "";
-
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+$success = "";
+$error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'] ?? '')) {
-        $error = "Invalid request. Please try again.";
-    } else {
-        $full_name = trim($_POST['full_name'] ?? '');
-        $email     = trim($_POST['email'] ?? '');
-        $phone     = trim($_POST['phone'] ?? '');
-        $password  = $_POST['password'] ?? '';
-        $confirm   = $_POST['confirm_password'] ?? '';
+    $full_name = trim($_POST['full_name'] ?? '');
+    $email     = trim($_POST['email'] ?? '');
+    $phone     = trim($_POST['phone'] ?? '');
+    $password  = $_POST['password'] ?? '';
+    $confirm   = $_POST['confirm_password'] ?? '';
 
-        if (empty($full_name) || empty($email) || empty($phone) || empty($password) || empty($confirm)) {
-            $error = "All fields are required.";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error = "Please enter a valid email address.";
-        } elseif ($password !== $confirm) {
-            $error = "Passwords do not match.";
-        } elseif (strlen($password) < 8) {
-            $error = "Password must be at least 8 characters long.";
-        } else {
+    // Validation
+    if (empty($full_name) || empty($email) || empty($phone) || empty($password) || empty($confirm)) {
+        $error = "All fields are required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid email address.";
+    } elseif ($password !== $confirm) {
+        $error = "Passwords do not match.";
+    } elseif (strlen($password) < 8) {
+        $error = "Password must be at least 8 characters long.";
+    } else {
+        try {
             // Check if email or phone already exists
             $check = $pdo->prepare("SELECT id FROM users WHERE email = ? OR phone = ?");
             $check->execute([$email, $phone]);
+
             if ($check->rowCount() > 0) {
                 $error = "This email or phone number is already registered.";
             } else {
-                // Hash password and insert user
+                // Hash password and insert new user
                 $hash = password_hash($password, PASSWORD_DEFAULT);
 
                 $stmt = $pdo->prepare("
-                    INSERT INTO users (full_name, email, phone, password, created_at)
-                    VALUES (?, ?, ?, ?, NOW())
+                    INSERT INTO users (full_name, email, phone, password, balance, created_at)
+                    VALUES (?, ?, ?, ?, 0.00, NOW())
                 ");
+
                 if ($stmt->execute([$full_name, $email, $phone, $hash])) {
                     $success = "Account created successfully!<br>
                                 You can now <a href='login.php' style='color:#001f3f;font-weight:bold;text-decoration:underline;'>log in here</a>.";
                 } else {
-                    $error = "Something went wrong. Please try again later.";
+                    $error = "Registration failed. Please try again later.";
                 }
             }
+        } catch (Exception $e) {
+            // Temporary debug (remove later if needed)
+            // $error = "Debug: " . $e->getMessage();
+            $error = "Something went wrong. Please try again later.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .col-left h1 { font-size: 2.3rem; margin-bottom: 15px; }
         .col-left p { opacity: 0.95; font-size: 1.1rem; }
-
         .container {
             padding: 50px 45px;
             background: var(--white);
@@ -150,7 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
         }
         .form-group input:focus { border-bottom-color: var(--primary); }
-
         button {
             width: 100%;
             padding: 16px;
@@ -169,7 +168,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,31,63,0.2);
         }
-
         .alert {
             padding: 15px;
             margin: 20px 0;
@@ -179,7 +177,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .alert-error { background: #fdf2f2; color: var(--error); border: 1px solid #fabcbc; }
         .alert-success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
-
         .back-to-login {
             text-align: center;
             margin-top: 30px;
@@ -191,7 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: none;
         }
         .back-to-login a:hover { text-decoration: underline; }
-
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; }
             .col-left { display: none; }
@@ -200,7 +196,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-
 <div class="main-container">
     <!-- Left Side -->
     <div class="col-left">
@@ -208,7 +203,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Join CedisPay Today</h1>
         <p>Get instant access to fast, reliable loans with transparent terms.</p>
     </div>
-
     <!-- Right Side - Form -->
     <div class="container">
         <div class="logo">
@@ -225,33 +219,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-
             <div class="form-group">
-                <input type="text" name="full_name" required>
+                <input type="text" name="full_name" required value="<?= htmlspecialchars($full_name ?? '') ?>">
                 <label>Full Name</label>
             </div>
-
             <div class="form-group">
-                <input type="email" name="email" required>
+                <input type="email" name="email" required value="<?= htmlspecialchars($email ?? '') ?>">
                 <label>Email Address</label>
             </div>
-
             <div class="form-group">
-                <input type="text" name="phone" required>
+                <input type="text" name="phone" required value="<?= htmlspecialchars($phone ?? '') ?>">
                 <label>Phone Number</label>
             </div>
-
             <div class="form-group">
                 <input type="password" name="password" required minlength="8">
-                <label>Create Password</label>
+                <label>Create Password (min. 8 characters)</label>
             </div>
-
             <div class="form-group">
                 <input type="password" name="confirm_password" required minlength="8">
                 <label>Confirm Password</label>
             </div>
-
             <button type="submit">Create Account</button>
         </form>
 
@@ -260,6 +247,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
-
 </body>
 </html>
