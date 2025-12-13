@@ -1,21 +1,24 @@
 <?php
 session_start();
-require_once '../config/db.php';// Database connection file
+require_once '../config/db.php'; // Database connection file
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Prepare and execute the query
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username); // "s" specifies the variable type as string
+    // Query admin table instead of users
+    $stmt = $conn->prepare("SELECT * FROM admin WHERE username = ?");
+    $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+    $admin = $result->fetch_assoc();
 
-    if ($user && $password === $user['password']) { 
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
+    // Plain-text password check (matches your current setup)
+    if ($admin && $password === $admin['password']) {
+
+        $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['admin_username'] = $admin['username'];
+        $_SESSION['admin_role'] = 'admin';
 
         session_regenerate_id(true); // Prevent session fixation
 
@@ -26,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -61,13 +63,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="login-container text-center">
         <h3 class="mb-3">Admin Login</h3>
         <p>Please enter your credentials to access the admin panel.</p>
-        <!-- <//?php if (isset($error)) echo "<p style='color:red;'>$error</p>"; ?> -->
+
         <?php if (isset($error)): ?>
-    <div class="alert alert-danger" role="alert">
-        <?php echo $error; ?>
-        </div>
-    <?php endif; ?>
-        <form action="#" method="POST">
+            <div class="alert alert-danger" role="alert">
+                <?php echo $error; ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST">
             <div class="mb-3">
                 <input type="text" name="username" class="form-control" placeholder="Username" required>
             </div>
@@ -79,4 +82,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </body>
 </html>
-
