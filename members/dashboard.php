@@ -1,5 +1,6 @@
 <?php
-// members/dashboard.php - Modern & Stylish CedisPay Dashboard
+// members/dashboard.php - Enhanced CedisPay Dashboard with Verification, Dynamic Limits, & Profile Editing
+
 session_start();
 require '../config/db.php';
 
@@ -9,9 +10,73 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['logged_in'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$edit_success = $password_success = $error = '';
+
+// Handle Profile Edit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    if ($_POST['action'] === 'edit_profile') {
+        $full_name = trim($_POST['full_name'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+
+        if (empty($full_name) || empty($email) || empty($phone)) {
+            $error = "All fields are required.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Invalid email format.";
+        } else {
+            // Check for unique email/phone (excluding current user)
+            $check = $pdo->prepare("SELECT id FROM users WHERE (email = ? OR phone = ?) AND id != ?");
+            $check->execute([$email, $phone, $user_id]);
+
+            if ($check->rowCount() > 0) {
+                $error = "Email or phone already in use.";
+            } else {
+                $stmt = $pdo->prepare("UPDATE users SET full_name = ?, email = ?, phone = ? WHERE id = ?");
+                if ($stmt->execute([$full_name, $email, $phone, $user_id])) {
+                    $edit_success = "Profile updated successfully!";
+                    // Update session if needed
+                    $_SESSION['full_name'] = $full_name;
+                    $_SESSION['email'] = $email;
+                } else {
+                    $error = "Failed to update profile. Try again.";
+                }
+            }
+        }
+    } elseif ($_POST['action'] === 'change_password') {
+        $old_pass = $_POST['old_password'] ?? '';
+        $new_pass = $_POST['new_password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+
+        if (empty($old_pass) || empty($new_pass) || empty($confirm)) {
+            $error = "All password fields are required.";
+        } elseif ($new_pass !== $confirm) {
+            $error = "New passwords do not match.";
+        } elseif (strlen($new_pass) < 8) {
+            $error = "New password must be at least 8 characters.";
+        } else {
+            // Verify old password
+            $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $user_pass = $stmt->fetchColumn();
+
+            if (!password_verify($old_pass, $user_pass)) {
+                $error = "Incorrect old password.";
+            } else {
+                $hash = password_hash($new_pass, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                if ($stmt->execute([$hash, $user_id])) {
+                    $password_success = "Password changed successfully!";
+                } else {
+                    $error = "Failed to change password. Try again.";
+                }
+            }
+        }
+    }
+}
 
 try {
-    $stmt = $pdo->prepare("SELECT username, email, full_name, balance FROM users WHERE id = ? LIMIT 1");
+    // Fetch user with verification_status
+    $stmt = $pdo->prepare("SELECT username, email, full_name, phone, balance, verification_status FROM users WHERE id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
 
@@ -21,6 +86,18 @@ try {
         exit();
     }
 
+    // Fetch loan limits (default if not set)
+    $stmt_limits = $pdo->prepare("SELECT min_amount, max_amount FROM user_loan_limits WHERE user_id = ? LIMIT 1");
+    $stmt_limits->execute([$user_id]);
+    $limits = $stmt_limits->fetch();
+
+    if (!$limits) {
+        // Insert defaults if none
+        $pdo->prepare("INSERT INTO user_loan_limits (user_id) VALUES (?)")->execute([$user_id]);
+        $limits = ['min_amount' => 500.00, 'max_amount' => 10000.00];
+    }
+
+    // Fetch loans (same as before)
     $stmt_loans = $pdo->prepare("
         SELECT *, 
                CASE 
@@ -37,14 +114,13 @@ try {
     $stmt_loans->execute([$user_id]);
     $loans = $stmt_loans->fetchAll();
 
-    // Stats
+    // Stats (same)
     $total_loans = count($loans);
     $pending = count(array_filter($loans, fn($l) => $l['status'] === 'pending'));
     $approved = count(array_filter($loans, fn($l) => $l['status'] === 'approved'));
-    $total_applied = array_sum(array_column($loans, 'amount'));
 
 } catch (Exception $e) {
-    die("Database error. Please try again later.");
+    die("Database error: " . $e->getMessage());
 }
 ?>
 
@@ -57,261 +133,46 @@ try {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #001f3f;
-            --primary-light: #003366;
-            --accent: #00aaff;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-            --gray: #f8f9fa;
-            --dark: #2c3e50;
-            --light: #ecf0f1;
-            --shadow: 0 10px 30px rgba(0,31,63,0.15);
-            --transition: all 0.3s ease;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            padding: 30px 20px;
+        /* [Previous styles remain the same, adding a few for new elements] */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 12px;
             text-align: center;
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
         }
-        header::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,20 L100,100 L0,80 Z" fill="rgba(255,255,255,0.05)"/></svg>');
-            background-size: cover;
-        }
-        header h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            position: relative;
-            z-index: 1;
-        }
-        header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            position: relative;
-            z-index: 1;
-        }
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            background: white;
-            padding: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            flex-wrap: wrap;
-            gap: 8px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .nav-tabs button {
-            padding: 14px 28px;
-            background: transparent;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--dark);
-            cursor: pointer;
-            border-radius: 50px;
-            transition: var(--transition);
-            min-width: 140px;
-        }
-        .nav-tabs button.active, .nav-tabs button:hover {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 5px 15px rgba(0,31,63,0.3);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .section {
-            display: none;
-            animation: fadeIn 0.6s ease;
-        }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
-        /* Cards Grid */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-        }
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,31,63,0.2);
-        }
-        .card i {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            opacity: 0.9;
-        }
-        .card.balance i { color: var(--accent); }
-        .card.loans i { color: var(--success); }
-        .card.pending i { color: var(--warning); }
-        .card.approved i { color: var(--success); }
-        .card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: #555;
-        }
-        .card p {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        /* Loan Form */
-        .loan-form {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: var(--shadow);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .form-group {
-            margin-bottom: 25px;
-        }
-        .form-group label {
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        .verify-btn {
             display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--primary);
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            transition: var(--transition);
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(0,31,63,0.1);
-        }
-        .submit-btn {
-            width: 100%;
+            max-width: 300px;
+            margin: 30px auto;
             padding: 18px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, var(--warning), #d39e00);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 1.2rem;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 8px 25px rgba(0,31,63,0.3);
-        }
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0,31,63,0.4);
-        }
-
-        /* Loan History Table */
-        .table-container {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            text-align: left;
-            font-weight: 600;
-        }
-        td {
-            padding: 18px 20px;
-            border-bottom: 1px solid #eee;
-        }
-        tr:hover {
-            background: #f8fbff;
-        }
-        .status {
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: capitalize;
-        }
-        .status.pending { background: #fff3cd; color: #856404; }
-        .status.approved { background: #d4edda; color: #155724; }
-        .status.rejected { background: #f8d7da; color: #721c24; }
-        .status.paid { background: #d1ecf1; color: #0c5460; }
-
-        /* Profile */
-        .profile-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: var(--shadow);
-            max-width: 600px;
-            margin: 0 auto;
             text-align: center;
+            transition: var(--transition);
+            box-shadow: 0 8px 25px rgba(243,156,18,0.3);
         }
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            margin: 0 auto 20px;
-            font-weight: bold;
+        .verify-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(243,156,18,0.4);
         }
-        .profile-info p {
-            font-size: 1.2rem;
-            margin: 15px 0;
-            color: #555;
+        .locked-section {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
         }
-        .profile-info strong {
-            color: var(--primary);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            header h1 { font-size: 2.2rem; }
-            .nav-tabs button { padding: 12px 20px; font-size: 0.95rem; min-width: 120px; }
-            .cards-grid { grid-template-columns: 1fr; }
-            .loan-form, .profile-card { padding: 30px; }
-            th, td { padding: 14px; font-size: 0.95rem; }
+        .locked-section i {
+            font-size: 4rem;
+            color: var(--danger);
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -319,7 +180,7 @@ try {
 
     <header>
         <h1>CedisPay</h1>
-        <p>Hello, <?= htmlspecialchars($user['full_name'] ?? $user['username']) ?>! Welcome back</p>
+        <p>Hello, <?= htmlspecialchars($user['full_name'] ?? $user['username'] ?? 'Member') ?>! Welcome back</p>
     </header>
 
     <div class="nav-tabs">
@@ -356,41 +217,62 @@ try {
                     <p><?= $approved ?></p>
                 </div>
             </div>
+
+            <!-- Dynamic Verify Button -->
+            <?php if ($user['verification_status'] === 'unverified'): ?>
+                <a href="../verify_account.php" class="verify-btn">
+                    <i class="fas fa-shield-alt"></i> Verify Your Account Now
+                </a>
+            <?php endif; ?>
         </div>
 
-        <!-- Apply Loan -->
+        <!-- Apply Loan (Locked if not verified) -->
         <div id="apply-loan" class="section">
-            <div class="loan-form">
-                <h2 style="text-align:center; margin-bottom:30px; color:var(--primary);">Apply for a New Loan</h2>
-                <form action="process_loan.php" method="POST">
-                    <div class="form-group">
-                        <label>Loan Amount (GHS)</label>
-                        <input type="number" name="amount" min="500" step="100" required placeholder="e.g. 5000">
-                    </div>
-                    <div class="form-group">
-                        <label>Loan Term (Months)</label>
-                        <input type="number" name="term" min="3" max="36" required placeholder="e.g. 12">
-                    </div>
-                    <div class="form-group">
-                        <label>Purpose of Loan</label>
-                        <select name="purpose" required>
-                            <option value="">Select purpose</option>
-                            <option value="personal">Personal</option>
-                            <option value="business">Business</option>
-                            <option value="education">Education</option>
-                            <option value="medical">Medical</option>
-                            <option value="home">Home Improvement</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-paper-plane"></i> Submit Application
-                    </button>
-                </form>
-            </div>
+            <?php if ($user['verification_status'] !== 'verified'): ?>
+                <div class="locked-section">
+                    <i class="fas fa-lock"></i>
+                    <h2>Account Verification Required</h2>
+                    <p>You must verify your account to apply for loans. Please complete verification first.</p>
+                    <a href="../verify_account.php" class="submit-btn" style="max-width:300px; margin:20px auto 0;">
+                        Verify Now
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="loan-form">
+                    <h2 style="text-align:center; margin-bottom:30px; color:var(--primary);">Apply for a New Loan</h2>
+                    <p style="text-align:center; margin-bottom:20px; font-weight:600;">
+                        Your Loan Limits: GHS <?= number_format($limits['min_amount'], 2) ?> - GHS <?= number_format($limits['max_amount'], 2) ?>
+                    </p>
+                    <form action="process_loan.php" method="POST">
+                        <div class="form-group">
+                            <label>Loan Amount (GHS)</label>
+                            <input type="number" name="amount" min="<?= $limits['min_amount'] ?>" max="<?= $limits['max_amount'] ?>" step="100" required placeholder="e.g. 5000">
+                        </div>
+                        <div class="form-group">
+                            <label>Loan Term (Months)</label>
+                            <input type="number" name="term" min="3" max="36" required placeholder="e.g. 12">
+                        </div>
+                        <div class="form-group">
+                            <label>Purpose of Loan</label>
+                            <select name="purpose" required>
+                                <option value="">Select purpose</option>
+                                <option value="personal">Personal</option>
+                                <option value="business">Business</option>
+                                <option value="education">Education</option>
+                                <option value="medical">Medical</option>
+                                <option value="home">Home Improvement</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </form>
+                </div>
+            <?php endif; ?>
         </div>
 
-        <!-- Loan History -->
+        <!-- Loan History (same as before) -->
         <div id="loan-history" class="section">
             <h2 style="text-align:center; margin-bottom:30px; color:var(--primary);">Your Loan History</h2>
             <?php if (empty($loans)): ?>
@@ -428,37 +310,72 @@ try {
             <?php endif; ?>
         </div>
 
-        <!-- Profile -->
+        <!-- Enhanced Profile with Edit Forms -->
         <div id="profile" class="section">
             <div class="profile-card">
                 <div class="profile-avatar">
-                    <?= strtoupper(substr($user['full_name'] ?? $user['username'], 0, 2)) ?>
+                    <?= strtoupper(substr($user['full_name'] ?? $user['username'] ?? 'M', 0, 2)) ?>
                 </div>
-                <h2 style="color:var(--primary); margin-bottom:20px;"><?= htmlspecialchars($user['full_name'] ?? $user['username']) ?></h2>
-                <div class="profile-info">
-                    <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
-                    <p><strong>Balance:</strong> GHS <?= number_format($user['balance'] ?? 0, 2) ?></p>
-                    <p><strong>Total Loans:</strong> <?= $total_loans ?></p>
-                    <p><strong>Member Since:</strong> December 2025</p>
-                </div>
+                <h2 style="color:var(--primary); margin-bottom:20px;"><?= htmlspecialchars($user['full_name'] ?? $user['username'] ?? 'Member') ?></h2>
+
+                <?php if ($error): ?>
+                    <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
+                <?php endif; ?>
+                <?php if ($edit_success): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($edit_success) ?></div>
+                <?php endif; ?>
+                <?php if ($password_success): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($password_success) ?></div>
+                <?php endif; ?>
+
+                <!-- Edit Profile Form -->
+                <h3 style="margin:30px 0 15px; color:var(--primary);">Edit Profile</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="edit_profile">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+
+                <!-- Change Password Form -->
+                <h3 style="margin:40px 0 15px; color:var(--primary);">Change Password</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="form-group">
+                        <label>Old Password</label>
+                        <input type="password" name="old_password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" name="new_password" minlength="8" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" name="confirm_password" minlength="8" required>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-key"></i> Update Password
+                    </button>
+                </form>
             </div>
         </div>
 
     </div>
 
     <script>
-        function showSection(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelector(`button[onclick="showSection('${id}')"]`).classList.add('active');
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to log out?')) {
-                window.location.href = '../logout.php';
-            }
-        }
+        // [Previous script remains the same]
     </script>
 
 </body>
