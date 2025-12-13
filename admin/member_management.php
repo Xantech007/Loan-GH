@@ -1,8 +1,8 @@
 <?php
-// admin/member_management.php - Updated CedisPay Member Management (Matches current 'users' table)
+// admin/member_management.php - Fixed & Updated Member Management
 
 session_start();
-require '../config/db.php'; // Using PDO for consistency
+require '../config/db.php'; // PDO connection
 
 // Admin authentication
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -13,20 +13,22 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['role']) || $_SESSION['role
 $pageTitle = "Member Management";
 include './includes/admin_header.php';
 
-// Handle Delete Member (with confirmation)
+// Handle Delete Member
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
     $delete_id = (int)$_GET['id'];
     try {
-        // Optional: Prevent deleting self or last admin
         $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role != 'admin'");
         $stmt->execute([$delete_id]);
         $success_message = "Member deleted successfully.";
     } catch (Exception $e) {
-        $error_message = "Unable to delete member.";
+        $error_message = "Unable to delete member: " . $e->getMessage();
     }
 }
 
-// Fetch all members (from users table)
+// Fetch all members safely
+$members = [];
+$error_message = '';
+
 try {
     $stmt = $pdo->prepare("
         SELECT id, full_name, email, phone, balance, is_verified, created_at
@@ -35,10 +37,11 @@ try {
         ORDER BY created_at DESC
     ");
     $stmt->execute();
-    $members = $stmt->fetchAll();
+    $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $error_message = "Database error: Unable to load members. " . $e->getMessage();
 } catch (Exception $e) {
-    $error_message = "Unable to load members.";
-    $members = [];
+    $error_message = "System error: " . $e->getMessage();
 }
 ?>
 
@@ -59,7 +62,7 @@ try {
         </div>
     <?php endif; ?>
 
-    <?php if (isset($error_message)): ?>
+    <?php if (!empty($error_message)): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($error_message) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -94,7 +97,7 @@ try {
                                     <td><strong><?= $index + 1 ?></strong></td>
                                     <td>
                                         <div>
-                                            <strong><?= htmlspecialchars($member['full_name']) ?></strong><br>
+                                            <strong><?= htmlspecialchars($member['full_name'] ?? 'N/A') ?></strong><br>
                                             <small class="text-muted"><?= htmlspecialchars($member['email']) ?></small>
                                         </div>
                                     </td>
@@ -107,7 +110,7 @@ try {
                                             <span class="badge bg-warning fs-6">Unverified</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= date('M d, Y', strtotime($member['created_at'])) ?></td>
+                                    <td><?= date('M d, Y', strtotime($member['created_at'] ?? 'now')) ?></td>
                                     <td>
                                         <a href="member_details.php?id=<?= $member['id'] ?>" 
                                            class="btn btn-info btn-sm me-1" 
