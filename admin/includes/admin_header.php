@@ -230,13 +230,6 @@
             </a>
           </li>
 
-          <li class="sidebar-item">
-            <a href="./member_applications.php" class="sidebar-link" onclick="showContent('members')">
-              <i class="fas fa-file-alt"></i>
-              <span>Member Applications</span>
-            </a>
-          </li>
-
 
           <li class="sidebar-item">
             <a href="./loan_management.php" class="sidebar-link">
