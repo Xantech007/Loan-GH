@@ -257,50 +257,7 @@
           </li> -->
 
           <!-- <//?php endif; ?> -->
-
-
-
-          <!-- <li class="sidebar-item">
-            <a href="./notifications.php" class="sidebar-link">
-              <i class="fa-solid fa-bell"></i>
-              <span>Notifications</span>
-            </a>
-          </li> -->
-
-          <?php
-            // Assuming you're already connected to the database
-            include('../config/db.php');
-            function getUnreadNotificationsCount($conn) {
-              // Query to get the count of unread notifications for the admin (or specific user)
-              $query = "SELECT COUNT(*) AS unread_count FROM notifications WHERE is_read = '0'";
-              
-              // Prepare the statement
-              $stmt = $conn->prepare($query);
-              $stmt->execute();
-              
-              // Get the result
-              $result = $stmt->get_result();
-              $row = $result->fetch_assoc();
-              
-              // Return the unread notification count
-              return $row['unread_count'];
-          }
-
-            // Get the unread notification count
-            $unread_notifications = getUnreadNotificationsCount($conn);
-            ?>
-
-          <li class="sidebar-item">
-            <a href="./notifications.php" class="sidebar-link">
-              <i class="fa-solid fa-bell"></i>
-              <span>Notifications</span>
-              <?php if ($unread_notifications > 0): ?>
-                <span class="notification-count"><?= $unread_notifications ?></span>
-              <?php endif; ?>
-            </a>
-          </li>
-
-
+        
 
 
           <li class="sidebar-item">
