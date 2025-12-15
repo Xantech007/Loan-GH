@@ -245,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Email Address</label>
             </div>
             <div class="form-group">
-                <input type="text" name="phone">
+                <input type="text" name="phone" required>
                 <label>Phone Number</label>
             </div>
             <div class="form-group">
