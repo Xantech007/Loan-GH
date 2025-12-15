@@ -1,8 +1,7 @@
 <?php
-// admin/login.php - Fully Compatible Admin Login for Your Current Dashboard
-
+// admin/login.php - Compatible with your current db.php on InfinityFree
 session_start();
-require_once '../config/db.php'; // Uses PDO ($pdo) from config
+require_once '../config/db.php'; // This provides both $conn (MySQLi) and $pdo (PDO, if possible)
 
 // Prevent access if already logged in
 if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
@@ -11,6 +10,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role']) && $_SESSION['role']
 }
 
 $error = '';
+$username = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -19,48 +19,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error = "Please enter both username and password.";
     } else {
-        try {
-            // Query the separate admin table
-            $stmt = $pdo->prepare("
-                SELECT id, username, full_name, password 
-                FROM admin 
-                WHERE username = ? 
-                LIMIT 1
-            ");
-            $stmt->execute([$username]);
-            $admin = $stmt->fetch();
+        $admin = null;
 
-            if ($admin) {
-                // CHANGE THIS TO HASHED PASSWORD IN PRODUCTION!
-                // For now, assuming plain text password as in your original code
-                if ($password === $admin['password']) {
-                    // Regenerate session for security
-                    session_regenerate_id(true);
+        // Try PDO first (preferred for prepared statements)
+        if (isset($pdo) && $pdo instanceof PDO) {
+            try {
+                $stmt = $pdo->prepare("
+                    SELECT id, username, full_name, password
+                    FROM admin
+                    WHERE username = ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$username]);
+                $admin = $stmt->fetch();
+            } catch (Exception $e) {
+                // PDO failed (e.g., table issue or silent failure) — fall through to MySQLi
+                $admin = null;
+            }
+        }
 
-                    // Set EXACT session variables used in your dashboard
-                    $_SESSION['user_id']   = $admin['id'];
-                    $_SESSION['username']  = $admin['username'];
-                    $_SESSION['full_name'] = $admin['full_name'] ?? $admin['username'];
-                    $_SESSION['role']      = 'admin';
+        // If PDO failed or not available, fall back to MySQLi
+        if (!$admin && isset($conn) && $conn instanceof mysqli) {
+            $username_escaped = mysqli_real_escape_string($conn, $username);
+            $query = "SELECT id, username, full_name, password FROM admin WHERE username = '$username_escaped' LIMIT 1";
+            $result = mysqli_query($conn, $query);
 
-                    // Optional extra flag
-                    $_SESSION['admin_logged_in'] = true;
+            if ($result && mysqli_num_rows($result) > 0) {
+                $admin = mysqli_fetch_assoc($result);
+            }
+        }
 
-                    header('Location: dashboard.php');
-                    exit();
-                } else {
-                    $error = "Invalid username or password.";
-                }
+        // Now check credentials
+        if ($admin) {
+            // WARNING: Switch to password_verify() when you hash passwords!
+            if ($password === $admin['password']) {
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $admin['id'];
+                $_SESSION['username'] = $admin['username'];
+                $_SESSION['full_name'] = $admin['full_name'] ?? $admin['username'];
+                $_SESSION['role'] = 'admin';
+                $_SESSION['admin_logged_in'] = true;
+                header('Location: dashboard.php');
+                exit();
             } else {
                 $error = "Invalid username or password.";
             }
-        } catch (Exception $e) {
-            $error = "Login error. Please try again later.";
+        } else {
+            $error = "Invalid username or password.";
         }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -140,37 +149,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <h3>CedisPay Admin</h3>
             <p>Secure Access to Administration Panel</p>
         </div>
-
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
-
         <form method="POST">
             <div>
-                <input 
-                    type="text" 
-                    name="username" 
-                    class="form-control" 
-                    placeholder="Username" 
-                    value="<?= htmlspecialchars($username ?? '') ?>" 
-                    required 
+                <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    placeholder="Username"
+                    value="<?= htmlspecialchars($username ?? '') ?>"
+                    required
                     autofocus>
             </div>
             <div>
-                <input 
-                    type="password" 
-                    name="password" 
-                    class="form-control" 
-                    placeholder="Password" 
+                <input
+                    type="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Password"
                     required>
             </div>
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-sign-in-alt"></i> Login Securely
             </button>
         </form>
-
         <footer>
             &copy; <?= date('Y') ?> CedisPay • All Rights Reserved
         </footer>
