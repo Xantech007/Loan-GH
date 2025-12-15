@@ -280,7 +280,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Added navigation for existing users -->
         <div class="login-link">
             Already have an account? <a href="login.php">Sign in here</a>
-            Go back to <a href="index.php">Home</a>
         </div>
     </div>
 </div>
