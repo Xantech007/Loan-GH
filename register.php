@@ -232,11 +232,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label>Phone Number</label>
             </div>
             <div class="form-group">
-                <input type="password" name="password" required minlength="8">
+                <input type="password" name="password" required minlength="1">
                 <label>Create Password</label>
             </div>
             <div class="form-group">
-                <input type="password" name="confirm_password" required minlength="8">
+                <input type="password" name="confirm_password" required minlength="1">
                 <label>Confirm Password</label>
             </div>
             <button type="submit">Create Account</button>
