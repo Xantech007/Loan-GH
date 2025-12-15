@@ -203,6 +203,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 10px;
             font-size: 17px;
             cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: var(--primary-light);
         }
         .alert-error {
             padding: 15px;
@@ -211,6 +215,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--error);
             border-radius: 10px;
             text-align: center;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #555;
+            font-size: 15px;
+        }
+        .login-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
         }
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; }
@@ -258,6 +276,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit">Create Account</button>
         </form>
+
+        <!-- Added navigation for existing users -->
+        <div class="login-link">
+            Already have an account? <a href="login.php">Sign in here</a>
+        </div>
     </div>
 </div>
 
