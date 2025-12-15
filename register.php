@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="form-group">
                 <input type="password" name="password" required minlength="8">
-                <label>Create Password (min. 8 characters)</label>
+                <label>Create Password</label>
             </div>
             <div class="form-group">
                 <input type="password" name="confirm_password" required minlength="8">
