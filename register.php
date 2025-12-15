@@ -1,7 +1,7 @@
 <?php
-// register.php - CedisPay Registration (Auto-login enabled)
+// register.php - CedisPay Registration (MEM username + Auto-login)
 session_start();
-require 'config/db.php'; // Adjust path if needed
+require 'config/db.php';
 
 $success = "";
 $error   = "";
@@ -14,8 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password  = $_POST['password'] ?? '';
     $confirm   = $_POST['confirm_password'] ?? '';
 
-    // Validation
-    if (empty($full_name) || empty($email) || empty($phone) || empty($password) || empty($confirm)) {
+    // =========================
+    // VALIDATION
+    // =========================
+    if (empty($full_name) || empty($email) || empty($password) || empty($confirm)) {
         $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please enter a valid email address.";
@@ -25,29 +27,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Password must be at least 1 character.";
     } else {
         try {
-            // Check if email or phone already exists
-            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? OR phone = ? LIMIT 1");
-            $check->execute([$email, $phone]);
+
+            // Check if email already exists
+            $check = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $check->execute([$email]);
 
             if ($check->rowCount() > 0) {
-                $error = "This email or phone number is already registered.";
+                $error = "This email is already registered.";
             } else {
+
+                // =========================
+                // GENERATE USERNAME (MEM000001)
+                // =========================
+                $getLastUser = $pdo->query("
+                    SELECT username 
+                    FROM users 
+                    WHERE username LIKE 'MEM%' 
+                    ORDER BY id DESC 
+                    LIMIT 1
+                ");
+
+                $lastUser = $getLastUser->fetch(PDO::FETCH_ASSOC);
+
+                if ($lastUser) {
+                    $lastNumber = (int) substr($lastUser['username'], 3);
+                    $newNumber  = $lastNumber + 1;
+                } else {
+                    $newNumber = 1;
+                }
+
+                $username = 'MEM' . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
 
                 // Hash password
                 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insert user
+                // =========================
+                // INSERT USER
+                // =========================
                 $stmt = $pdo->prepare("
-                    INSERT INTO users (full_name, email, phone, password, balance, created_at)
-                    VALUES (?, ?, ?, ?, 0.00, NOW())
+                    INSERT INTO users (
+                        username,
+                        full_name,
+                        email,
+                        phone,
+                        password,
+                        balance,
+                        created_at
+                    ) VALUES (
+                        ?, ?, ?, ?, ?, 0.00, NOW()
+                    )
                 ");
 
-                $stmt->execute([$full_name, $email, $phone, $hash]);
+                $stmt->execute([
+                    $username,
+                    $full_name,
+                    $email,
+                    $phone,
+                    $hash
+                ]);
 
                 // =========================
                 // AUTO LOGIN
                 // =========================
                 $_SESSION['user_id']   = $pdo->lastInsertId();
+                $_SESSION['username']  = $username;
                 $_SESSION['email']     = $email;
                 $_SESSION['full_name'] = $full_name;
                 $_SESSION['logged_in'] = true;
@@ -58,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (PDOException $e) {
             $error = "Something went wrong. Please try again later.";
-            // Debug only:
+            // DEBUG ONLY:
             // $error = $e->getMessage();
         }
     }
@@ -116,19 +159,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
         }
         .col-left h1 { font-size: 2.3rem; margin-bottom: 15px; }
-        .col-left p { opacity: 0.95; font-size: 1.1rem; }
         .container {
             padding: 50px 45px;
             background: var(--white);
         }
-        .logo { text-align: center; margin-bottom: 10px; }
-        .logo img { height: 60px; }
         h2 {
             text-align: center;
             color: var(--primary);
             margin: 10px 0 35px;
             font-size: 28px;
-            font-weight: 600;
         }
         .form-group {
             position: relative;
@@ -137,10 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group input {
             width: 100%;
             padding: 18px 0 8px;
-            font-size: 16px;
             border: none;
             border-bottom: 2px solid var(--gray);
-            background: transparent;
             outline: none;
         }
         .form-group label {
@@ -148,9 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 18px;
             left: 0;
             color: #999;
-            pointer-events: none;
             transition: 0.3s;
-            font-size: 16px;
         }
         .form-group input:focus ~ label,
         .form-group input:valid ~ label {
@@ -159,7 +194,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--primary);
             font-weight: 600;
         }
-        .form-group input:focus { border-bottom-color: var(--primary); }
         button {
             width: 100%;
             padding: 16px;
@@ -168,75 +202,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
             border-radius: 10px;
             font-size: 17px;
-            font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
         }
-        button:hover {
-            background: var(--primary-light);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,31,63,0.2);
-        }
-        .alert {
+        .alert-error {
             padding: 15px;
-            margin: 20px 0;
+            margin-bottom: 20px;
+            background: #fdf2f2;
+            color: var(--error);
             border-radius: 10px;
             text-align: center;
-            font-weight: 500;
         }
-        .alert-error { background: #fdf2f2; color: var(--error); border: 1px solid #fabcbc; }
-        .alert-success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
-        .back-to-login {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 15px;
-        }
-        .back-to-login a {
-            color: var(--primary);
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .back-to-login a:hover { text-decoration: underline; }
         @media (max-width: 768px) {
             .main-container { grid-template-columns: 1fr; }
             .col-left { display: none; }
-            .container { padding: 40px 30px; }
         }
     </style>
 </head>
 <body>
+
 <div class="main-container">
 
-    <!-- Left Side -->
     <div class="col-left">
         <img src="assets/cedispay-logo-white.png" alt="CedisPay">
         <h1>Join CedisPay Today</h1>
-        <p>Get instant access to fast, reliable loans with transparent terms.</p>
+        <p>Get instant access to fast, reliable loans.</p>
     </div>
 
-    <!-- Right Side -->
     <div class="container">
-        <div class="logo">
-            <img src="assets/profile_3135715.png" alt="Icon">
-        </div>
         <h2>Create Your Account</h2>
 
         <?php if ($error): ?>
-            <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
+            <div class="alert-error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
         <form method="POST">
             <div class="form-group">
-                <input type="text" name="full_name" required value="<?= htmlspecialchars($full_name ?? '') ?>">
+                <input type="text" name="full_name" required>
                 <label>Full Name</label>
             </div>
             <div class="form-group">
-                <input type="email" name="email" required value="<?= htmlspecialchars($email ?? '') ?>">
+                <input type="email" name="email" required>
                 <label>Email Address</label>
             </div>
             <div class="form-group">
-                <input type="text" name="phone" required value="<?= htmlspecialchars($phone ?? '') ?>">
+                <input type="text" name="phone">
                 <label>Phone Number</label>
             </div>
             <div class="form-group">
@@ -249,11 +258,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <button type="submit">Create Account</button>
         </form>
-
-        <div class="back-to-login">
-            Already have an account? <a href="login.php">Log in here</a>
-        </div>
     </div>
 </div>
+
 </body>
 </html>
