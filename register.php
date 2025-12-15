@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter a valid email address.";
     } elseif ($password !== $confirm) {
         $error = "Passwords do not match.";
-    } elseif (strlen($password) < 8) {
-        $error = "Password must be at least 8 characters long.";
+    } elseif (strlen($password) < 1) {
+        $error = "Password must be at least 1 character.";
     } else {
         try {
             // Check if email or phone already exists
